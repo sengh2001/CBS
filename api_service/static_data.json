@@ -1,0 +1,94 @@
+{
+    "UserRoles": [
+        {"id": "FAC", "value": "Faculty"},
+        {"id": "FAC-CON", "value": "Faculty (Contractual)"},
+        {"id": "STA", "value": "Non-teaching Staff"},
+        {"id": "STA-CON", "value": "Non-teaching (Contractual)"},
+        {"id": "HOD", "value": "Area Chair"},
+        {"id": "MGR", "value": "Manager"},
+        {"id": "DEA", "value": "Dean"},
+        {"id": "DIR", "value": "Director"},
+        {"id": "SUP", "value": "Superuser"},
+        {"id": "ANY", "value": "Any Role"}
+    ],
+    "UserCategories": [
+        {"id": "", "value": "Choose..."},
+        {"id": "GE", "value": "General"},
+        {"id": "SC", "value": "Scheduled Casts"},
+        {"id": "ST", "value": "Scheduled Tribes"},
+        {"id": "EW", "value": "Economically Weaker Section"},
+        {"id": "OB", "value": "Other Backward Classes"},
+        {"id": "PD", "value": "Persons with disabilities"}
+    ],
+    "WfStatuses": [
+        {"id": "", "value": "Choose..."},
+        {"id": "DRA", "value": "Draft"},
+        {"id": "SUB", "value": "Approval Pending"},
+        {"id": "SUBREC", "value": "Recomm. Pending"},
+        {"id": "APP", "value": "Approved"},
+        {"id": "REJ", "value": "Rejected"},
+        {"id": "REJREC", "value": "Not Recommended"},
+        {"id": "WIT", "value": "Withdrawn"},
+        {"id": "COM", "value": "Completed"},
+        {"id": "RECALL", "value": "Recalled"}
+    ],
+    "LeaveTypes": [
+        {"id": "", "value": "Choose..."},
+        {"id": "CL", "value": "Casual"},
+        {"id": "EL", "value": "Earned"},
+        {"id": "VL", "value": "Vacation"},
+        {"id": "SL", "value": "Sick"},
+        {"id": "CO", "value": "Comp. Off"},
+        {"id": "HT", "value": "Holiday Travel"},
+        {"id": "LWP", "value": "Without Pay"},
+        {"id": "ANY", "value": "Any/all types"}
+    ],
+    "WorkAreas": [
+        {"id": "", "value": "Choose..."},
+        {"id": "COM", "value": "Communications"},
+        {"id": "ECO", "value": "Economics"},
+        {"id": "FIN", "value": "Finance, Accounting, and Control"},
+        {"id": "ITS", "value": "IT and Computational Systems"},
+        {"id": "HRO", "value": "Organizational Behaviour and Human Resources"},
+        {"id": "MKT", "value": "Marketing Management"},
+        {"id": "QMO", "value": "Quantitative Methods & Operations Management"},        
+        {"id": "STM", "value": "Strategic Management"},
+        {"id": "", "value": "---Non-academic areas---", "disabled": true},
+        {"id": "A_IT", "value": "IT Section (NT)"},
+        {"id": "A_HR", "value": "HR (NT)"},
+        {"id": "A_SP", "value": "Stores and Purchase (NT)"},
+        {"id": "A_ES", "value": "Estate Section (NT)"}
+    ],
+    "AdminWorkTypes": [
+        {"id": "", "value": "Choose..."},
+        {"id": "DEA", "value": "Serving as Dean"},
+        {"id": "HOD", "value": "Serving as HoD"},
+        {"id": "COM", "value": "Serving on a committee"},
+        {"id": "OTH", "value": "Others"}
+    ],
+    "PubTypes": [
+        {"id": "", "value": "Choose..."},
+        {"id": "Journal Paper", "value": "Journal Paper"},
+        {"id": "Conference Full Paper", "value": "Conference Full Paper"},
+        {"id": "Conference Short Paper", "value": "Conference Short Paper"},
+        {"id": "Extended Abstract", "value": "Extended Abstract"},
+        {"id": "Poster Paper", "value": "Poster Paper"},
+        {"id": "National Policy Paper", "value": "National Policy Paper"},
+        {"id": "International Policy Paper", "value": "International Policy Paper"},
+        {"id": "Book Chapter", "value": "Book Chapter"},
+        {"id": "Book", "value": "Book"},
+        {"id": "Others", "value": "Others"}
+    ],
+    "ReqTypes": [
+        {"id": "", "value": "Choose..."},
+        {"id": "LeaveApplication", "value": "Leave applications"},
+        {"id": "WorkRequest", "value": "Work requests"},
+        {"id": "AdminActivity", "value": "Faculty activity"}
+    ],
+    "DurationTypes": [
+        {"id": "GEN", "value": "General Holiday"},
+        {"id": "RES", "value": "Restricted Holiday"},
+        {"id": "VAC", "value": "Vacation Period"},
+        {"id": "BLK", "value": "Blackout Days"}
+    ]
+}

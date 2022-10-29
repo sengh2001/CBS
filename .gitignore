@@ -6,13 +6,15 @@
 # Node artifact files
 node_modules/
 dist/
-
+.vscode
+api_service/app
+*uploads/
 # Compiled Java class files
 *.class
 
 # Compiled Python bytecode
 *.py[cod]
-
+__pycache__
 # Log files
 *.log
 

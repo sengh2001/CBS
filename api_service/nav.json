@@ -1,0 +1,81 @@
+{
+    "menus": [{
+            "label": "Admin",
+            "items": [{
+                    "label": "Find Users",
+                    "href": "#/user.find",
+                    "roles": "SUP"
+                },
+                {
+                    "label": "New User",
+                    "href": "#/user",
+                    "roles": "SUP"
+                },
+                {
+                    "label": "Manage Leave Rules",
+                    "href": "#/rule.find",
+                    "roles": "SUP"
+                },
+                {
+                    "label": "Manage Form Actions",
+                    "href": "#/form.actions",
+                    "roles": "SUP"
+                },
+                {
+                    "label": "Manage Calendar Holidays",
+                    "href": "#/calhol",
+                    "roles": "SUP"
+                }
+            ]
+        },
+        {
+            "label": "Requests",
+            "items": [{
+                    "label": "Apply for Leave",
+                    "href": "#/leave",
+                    "roles": "*"
+                },
+                {
+                    "label": "Search Leaves",
+                    "href": "#/leave.find",
+                    "roles": "*"
+                },
+                {
+                    "label": "Submit Work Request",
+                    "href": "#/wreq",
+                    "roles": "*"
+                },
+                {
+                    "label": "Search Work Requests",
+                    "href": "#/wreq.find",
+                    "roles": "*"
+                },
+                {
+                    "label": "Leaves Status",
+                    "href": "#/leaves.status",
+                    "roles": "*"
+                }
+            ]
+        },
+        {
+            "label": "Faculty Activity",
+            "items": [{
+                    "label": "Setup Credits",
+                    "href": "#/fa.credits",
+                    "roles": ""
+                },
+                {
+                    "label": "Add Record",
+                    "href": "#/fa",
+                    "roles": ""
+                },
+                {
+                    "label": "Search",
+                    "href": "#/fa.find",
+                    "roles": ""
+                }
+            ]
+        }
+    ],
+    "links": [ ]
+}
