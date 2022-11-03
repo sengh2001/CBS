@@ -63,20 +63,15 @@ def find_user():
     try:
         fd = request.get_json(force=True)
         name, role = fd.get("name"),fd.get("role")
-        email, area = fd.get("email"), fd.get("area")
+        email, org_unit = fd.get("email"), fd.get("area")
         
         roles = []
         if role:
             roles.append(role)
 
         pg_no = int(fd.get('pg_no', 1))
-        query = User.select(User, UserProfile)
-        query = query.join(UserProfile, JOIN.LEFT_OUTER, attr='profile')
+        query = User.select()
         query = query.where(User.is_deleted != True)
-        query = query.where(
-            (UserProfile.id.is_null()) | \
-            (UserProfile.valid_from <= DT.now()) | \
-            (UserProfile.valid_till >= DT.now()))
         if roles:
             query = query.where(User.role.in_(roles))
         if email:
@@ -84,24 +79,11 @@ def find_user():
         if name:
             query = query.where((User.first_name.contains(name)) |
                                 (User.last_name.contains(name)))
-        if area:
-            query = query.where(UserProfile.area == area)
+        if org_unit:
+            query = query.where(User.org_unit == org_unit)
 
         users = query.order_by(-User.id).paginate(pg_no, PAGE_SIZE)
-        serialized = []
-        uids = set()
-        for r in users:
-            if r.id in uids:
-                continue            
-            uobj = model_to_dict(r)
-            try:
-                uobj["profile"] = model_to_dict(r.profile, recurse=False)
-            except AttributeError as aer:
-                logging.warning("User {} does not have profile!".format(r.email))
-                uobj["profile"] = {}
-            serialized.append(uobj)
-            uids.add(r.id)
-
+        serialized = [model_to_dict(r) for r in users]
         has_next = len(users) >= PAGE_SIZE
         res = {"users": serialized, "pg_no": pg_no, "pg_size": PAGE_SIZE,
                "has_next": has_next}
@@ -161,57 +143,6 @@ def save_user():
         return error_json(msg)
 
 
-@auth_check(roles=["SUP"])
-def save_user_profile():
-    try:
-        fd = request.get_json(force=True)
-        logging.info("Saving user profile: {}".format(fd))
-        cid = int(fd.get("id", 0))
-        user_id = int(fd.get("user_id", 0))
-        
-        user_mod = UserProfile()
-        with db.atomic() as txn:
-            rc = 0
-            if cid:
-                user_mod = UserProfile.get_by_id(cid)              
-                merge_json_to_model(user_mod, fd)
-                rc = update_entity(UserProfile, user_mod, 
-                    exclude=[UserProfile.user])
-            else:
-                merge_json_to_model(user_mod, fd)
-                user_mod.user = user_id
-                rc = save_entity(user_mod)
-             
-            if rc != 1:
-                return error_json("Could not save user profile. Please try again.")
-            logging.debug("Saved user profile: {}".format(user_mod))
-                        
-            txn.commit()
-        
-        res = model_to_dict(user_mod)
-        return ok_json(res)
-
-    except Exception as ex:
-        msg = log_error(ex, "Error when saving User profile.")
-        return error_json(msg)
-
-@auth_check
-def get_user_profile(user_id):
-    try:
-        cu = logged_in_user()
-        res = UserProfile.select().where(UserProfile.user == user_id)
-        if not res.exists():
-            return error_json("User profile does not exist!")        
-        if not is_user_in_role("SUP") and cu.id != res[0].user:
-            return error_json("Cannot access other's profile!")
-        uobj = model_to_dict(res[0])
-        return ok_json(uobj)
-
-    except Exception as ex:
-        msg = log_error(ex, "Error when fetching user profile.")
-        return error_json(msg)
-
-
 @auth_check
 def get_file(file_name):
     try:
@@ -236,13 +167,8 @@ def signin_user(my_id, isEmail=True):
         raise AppException("The user with email {0} not found!".format(my_id))
 
     logging.info("Got user: {0} ({1})".format(u.first_name, u.email))        
-    user_obj = {"id": u.id, "first_name": u.first_name, 
-                "last_name": u.last_name, "email": u.email,
-                "role": u.role, "is_oauth": True, "area": "--"}
-    up = get_current_profile(u)
-    user_obj["area"] = up.area
-    session['user'] = user_obj
-    return user_obj
+    session['user'] = model_to_dict(u)
+    return session['user']
 
 
 def oauth_verify(token):

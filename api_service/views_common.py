@@ -52,16 +52,6 @@ def get_sql(sql_id):
     return sql_dict[sql_id]
 
 
-def get_current_profile(user):
-    upq = user.profiles.where(
-            (UserProfile.id.is_null()) | \
-            (UserProfile.valid_from <= DT.now()) | \
-            (UserProfile.valid_till >= DT.now()))
-    if upq.exists():
-        return upq[0]
-    raise AppException("Current profile missing for user {0} {1}".format(user.first_name, user.last_name))
-
-
 def session_user():
     if "user" in session:
         return session['user']
