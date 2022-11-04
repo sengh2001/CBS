@@ -131,3 +131,92 @@ def delete_form_action(fa_id):
         msg = log_error(ex, "Error when deleting form action.")
         return error_json(msg)
 
+
+@auth_check(roles=["SUP"])
+def delete_doc_field(my_id):
+    try:
+        act = DocField.get_by_id(my_id)
+        rc = act.delete_instance()
+        if rc == 1:
+            return ok_json("Deleted the doc field.")
+        else:
+            return error_json("Failed to delete the doc field.")
+    except Exception as ex:
+        msg = log_error(ex, "Error when deleting doc field.")
+        return error_json(msg)
+
+
+@auth_check(roles=["SUP"])
+def save_doc_field():
+    try:
+        fd = request.get_json(force=True)
+        fa_id = fd.get("id", 0)
+        ra = DocField.get_by_id(fa_id) if fa_id else DocField()
+        merge_json_to_model(ra, fd)
+        if fa_id:
+            rc = update_entity(DocField, ra)
+        else:
+            rc = save_entity(ra)
+        if rc != 1:
+            return error_json("Could not save the doc field.")
+        else:
+            res = model_to_dict(ra, recurse=False)
+            return ok_json(res)
+    except Exception as ex:
+        msg = log_error(ex, "Error when saving doc field.")
+        return error_json(msg)
+
+
+@auth_check(roles=["SUP"])
+def save_doc_type():
+    try:
+        fd = request.get_json(force=True)
+        fa_id = fd.get("id", 0)
+        ra = DocType.get_by_id(fa_id) if fa_id else DocType()
+        merge_json_to_model(ra, fd)
+        if fa_id:
+            rc = update_entity(DocType, ra)
+        else:
+            rc = save_entity(ra)
+        if rc != 1:
+            return error_json("Could not save the doc type.")
+        else:
+            res = model_to_dict(ra)
+            return ok_json(res)
+    except Exception as ex:
+        msg = log_error(ex, "Error when saving doc type.")
+        return error_json(msg)
+
+
+@auth_check(roles=["SUP"])
+def find_doc_type():
+    try:
+        fd = request.get_json(force=True)
+        name = fd.get("name")
+        pg_no = int(fd.get('pg_no', 1))
+        dtq = DocType.select()
+        dtq = dtq.where(DocType.is_deleted != True)
+        if name:
+            dtq = dtq.where(DocType.name.contains(name))
+        data = dtq.order_by(-DocType.id).paginate(pg_no, PAGE_SIZE)
+        serialized = [model_to_dict(r) for r in data]
+        has_next = len(data) >= PAGE_SIZE
+        res = {"items": serialized, "pg_no": pg_no, "pg_size": PAGE_SIZE,
+               "has_next": has_next}
+        return ok_json(res)
+    except Exception as ex:
+        msg = log_error(ex, "Error when searching doc type.")
+        return error_json(msg)
+
+
+@auth_check(roles=["SUP"])
+def get_doc_type(my_id):
+    try:
+        dt = DocType.get_by_id(my_id)
+        df = [model_to_dict(x, recurse=False) for x in dt.doc_fields]
+        res = model_to_dict(dt, recurse=False)
+        res["doc_fields"] = df
+        return ok_json(res)
+    except Exception as ex:
+        msg = log_error(ex, "Error when fetching doc type.")
+        return error_json(msg)

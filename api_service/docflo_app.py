@@ -42,48 +42,18 @@ def _setup_routes():
     V.vbp.add_url_rule('/get_static_data', view_func=V.get_static_data, methods=['GET'])
     V.vbp.add_url_rule('/get_file/<string:file_name>', view_func=V.get_file, methods=['GET'])
     V.vbp.add_url_rule('/to_user/<int:myid>', view_func=V.to_user, methods=['GET'])
-    V.vbp.add_url_rule('/rule_find', view_func=V.find_leave_rule, methods=['POST'])
-    V.vbp.add_url_rule('/rule_save', view_func=V.save_leave_rule, methods=['POST'])
-    V.vbp.add_url_rule('/rule/<int:rid>', view_func=V.get_leave_rule, methods=['GET'])
     V.vbp.add_url_rule('/user_lookup/<string:qry>', view_func=V.lookup_user, methods=['GET'])
-    V.vbp.add_url_rule('/leave_status/<int:user_id>', view_func=V.get_leave_status, methods=['GET'])
-    V.vbp.add_url_rule('/leave/<int:appl_id>', view_func=V.get_leave_appl, methods=['GET'])
-    V.vbp.add_url_rule('/leave_appl_find', view_func=V.find_leave_appl, methods=['POST'])
-    V.vbp.add_url_rule('/leave_appl_save', view_func=V.save_leave_appl, methods=['POST'])
-    V.vbp.add_url_rule('/user_profile_save', view_func=V.save_user_profile, methods=['POST'])
-    V.vbp.add_url_rule('/user_profile/<int:user_id>', view_func=V.get_user_profile, methods=['GET'])
-
-    V.vbp.add_url_rule('/get_credits/<string:typ>/<string:for_dd>', view_func=V.get_credits, methods=['GET'])
-    
-    V.vbp.add_url_rule('/ad_credit/<int:myid>', view_func=V.get_admin_duty_credit, methods=['GET'])
-    V.vbp.add_url_rule('/ad_credit_save', view_func=V.save_admin_duty_credit, methods=['POST'])
-    V.vbp.add_url_rule('/ad_credit_del/<int:myid>', view_func=V.delete_admin_duty_credit, methods=['GET'])
-    
-    V.vbp.add_url_rule('/res_credit/<int:myid>', view_func=V.get_research_credit, methods=['GET'])
-    V.vbp.add_url_rule('/res_credit_save', view_func=V.save_research_credit, methods=['POST'])
-    V.vbp.add_url_rule('/res_credit_del/<int:myid>', view_func=V.delete_research_credit, methods=['GET'])
-
-    V.vbp.add_url_rule('/user_activities/<int:uid>', view_func=V.get_activities_for_user, methods=['GET'])
-    V.vbp.add_url_rule('/get_activity/<int:aid>/<string:atype>', view_func=V.get_user_activity, methods=['GET'])
-    V.vbp.add_url_rule('/activity_del/<int:aid>/<string:atype>', view_func=V.delete_user_activity, methods=['GET'])
-    V.vbp.add_url_rule('/ad_activity_save', view_func=V.save_admin_activity, methods=['POST'])
-    V.vbp.add_url_rule('/pub_activity_save', view_func=V.save_pub_activity, methods=['POST'])
-    V.vbp.add_url_rule('/activity_find/<string:status>', view_func=V.find_user_activities, methods=['GET'])
-
-    V.vbp.add_url_rule('/wreq_get/<int:wreq_id>', view_func=V.get_work_request, methods=['GET'])
-    V.vbp.add_url_rule('/wreq_save', view_func=V.save_work_request, methods=['POST'])
-    V.vbp.add_url_rule('/wreq_find', view_func=V.find_work_requests, methods=['POST'])
     
     V.vbp.add_url_rule('/list_form_actions', view_func=V.all_form_actions, methods=['GET'])
     V.vbp.add_url_rule('/fa_save', view_func=V.save_form_action, methods=['POST'])
     V.vbp.add_url_rule('/fa_delete/<int:fa_id>', view_func=V.delete_form_action, methods=['GET'])
-
     V.vbp.add_url_rule('/my_form_actions/<string:form_nm>/<string:status>', view_func=V.get_form_actions, methods=['GET'])
 
-    V.vbp.add_url_rule('/list_holidays/<string:year>/<string:holType>', view_func=V.load_holidays, methods=['GET'])
-    V.vbp.add_url_rule('/hol_save', view_func=V.save_holiday, methods=['POST'])
-    V.vbp.add_url_rule('/hol_delete/<int:hid>', view_func=V.delete_holiday, methods=['GET'])
-    V.vbp.add_url_rule('/isblackout/<string:start_dt>/<string:end_dt>', view_func=V.is_blackout, methods=['GET'])
+    V.vbp.add_url_rule('/doc_type/<int:my_id>', view_func=V.get_doc_type, methods=['GET'])
+    V.vbp.add_url_rule('/doc_type_search', view_func=V.find_doc_type, methods=['POST'])
+    V.vbp.add_url_rule('/doc_type_save', view_func=V.save_doc_type, methods=['POST'])
+    V.vbp.add_url_rule('/dtf_save', view_func=V.save_doc_field, methods=['POST'])
+    V.vbp.add_url_rule('/dtf_delete/<int:my_id>', view_func=V.delete_doc_field, methods=['GET'])
 
 
 

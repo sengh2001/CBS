@@ -19,7 +19,7 @@ Component for leave rules.
           <input type="text" required class="form-control" id="doc_name"
           v-model="doc_type.name" :disabled="viewOnly" />
         </div>
-        <div class="col-md-3">
+        <div class="col">
           <label for="docdesc">Description</label>
           <input type="text" required class="form-control" id="docdesc"
           v-model="doc_type.description" :disabled="viewOnly" />
@@ -33,18 +33,22 @@ Component for leave rules.
       </span>
     </div>
     <div class="card-body">
-      <p v-if="doc_fields.length == 0">Nothing to show yet!</p>
+      <p v-if="!hasFields">Nothing to show yet!</p>
       <div v-else>
         <div class="row fw-bold">
-          <div class="col-md-3">S#. Field Name</div>
+          <div class="col-md-1">S#.</div>
+          <div class="col-md-3">Field Name</div>
           <div class="col-md-2">Field Type</div>
-          <div class="col-md-2">Optional</div>
+          <div class="col-md-1">Optional</div>
           <div class="col">Description</div>
         </div>
-        <div class="row mb-2" :class="{'border border-success': !pb.id}" v-for="(pb, i) in doc_fields" :key="pb.id">
+        <div class="row mb-2" :class="{'border border-success': !pb.id}"
+          v-for="(pb, i) in doc_type.doc_fields" :key="pb.id">
+          <div class="col-md-1">
+            <span class="fw-bold me-2">{{i+1}}.</span>
+          </div>
           <div class="col-md-3">
             <div class="input-group">
-              <span class="fw-bold me-2">{{i+1}}. </span>
               <input class="form-control" type="text" v-model="pb.name" />
             </div>
           </div>
@@ -55,16 +59,18 @@ Component for leave rules.
               </option>
             </select>
           </div>
-          <div class="col-md-2">
+          <div class="col-md-1">
             <div class="form-check form-check-inline">
               <input class="form-check-input" type="checkbox" v-model="pb.optional">
             </div>
           </div>
           <div class="col">
-            <input class="form-control" type="text" v-model="pb.description" />
-            <button title="Save this item" class="btn btn-sm btn-outline-primary me-2" @click="saveItem(pb)"><i class="bi bi-save" role="button"></i></button>
-            <button title="Copy this item as new row" class="btn btn-sm btn-outline-success me-2" @click="copyItem(pb)"><i class="bi bi-clipboard-plus" role="button"></i></button>
-            <button title="Delete this item" class="btn btn-sm btn-outline-danger" @click="removeItem(pb)"><i class="bi bi-trash-fill"></i></button>
+            <div class="input-group">
+              <input class="form-control" type="text" v-model="pb.description" />
+              <button title="Save this item" class="btn btn-sm btn-outline-primary me-2" @click="saveItem(pb)"><i class="bi bi-save" role="button"></i></button>
+              <button title="Copy this item as new row" class="btn btn-sm btn-outline-success me-2" @click="copyItem(pb)"><i class="bi bi-clipboard-plus" role="button"></i></button>
+              <button title="Delete this item" class="btn btn-sm btn-outline-danger" @click="removeItem(pb)"><i class="bi bi-trash-fill"></i></button>
+            </div>
           </div>
         </div>
       </div>
@@ -73,16 +79,121 @@ Component for leave rules.
 </template>
 
 <script>
+import _ from "lodash"
+
 export default {
   name: "DocType",
   components: {},
   data: function () {
     return { doc_type: { doc_fields: []} }
   },
-  async created() {
-    console.log("Creating DocType");
+  async mounted() {
+    console.log("Mounting Doc Type");
+    let vm = this;
+    try {
+      if (vm.isEdit) {
+        await vm.load();
+      } else {
+        vm.reset();
+      }
+      if (vm.$route.query["nr"] == 1) {
+        vm.setStatusMessage("Saved the doc type!");
+        vm.$route.query = {};
+      }
+    } catch (error) {
+      vm.setStatusMessage(error)
+    }
+  },
+  computed: {
+    isEdit() {
+      console.log("isEdit() called");
+      return this.$route.params.id > 0;
+    },
+    hasFields() {
+      return this.doc_type !== undefined && 
+      this.doc_type.doc_fields !== undefined &&
+      this.doc_type.doc_fields.length > 0
+    }
   },
   methods: {
+    async reset() {
+      this.doc_type = {doc_fields: []}
+    },
+
+    async load() {
+      let vm = this;
+      let uid = vm.$route.params.id;
+      let error = false
+      console.log("Loading doc type. id=" + uid);
+      await vm.doGet(`doc_type/${uid}`, (b) => { vm.doc_type = b; },
+        (b)=> {error = b})
+      if (error) throw error
+    },
+    isValid() {
+      return !(_.isEmpty(this.doc_type.name));
+    },
+    async saveDocType() {
+      let vm = this;
+      if (!this.isValid()) {
+        vm.setStatusMessage("Please supply all required fields!");
+        return;
+      }
+      if (!confirm("Confirm save?")) {
+        return;
+      }
+      console.log("Saving doc type details.");
+      await vm.doPost("doc_type_save", vm.doc_type,
+        (b) => {
+          vm.doc_type = b;
+          vm.setStatusMessage("Saved successfully!");
+          if (!vm.isEdit) {
+            vm.$router.push({ path: "/doc_type/" + vm.doc_type.id, query: { nr: 1 } });
+          }
+        }, vm.setStatusMessage);
+    },
+
+    async addDocField() {
+      let dt = this.doc_type
+      if (!this.hasFields) dt.doc_fields = []
+      dt.doc_fields.push({"doc_type_id": dt.id})
+    },
+
+    async saveItem(obj) {
+      let vm = this;
+      if (!confirm("Confirm save?")) {
+        return;
+      }
+      console.log("Saving doc type field.");
+      await vm.doPost("dtf_save", obj,
+        (b) => {
+          Object.assign(obj, b)
+          vm.setStatusMessage("Saved successfully!");
+        }, vm.setStatusMessage);
+    },
+
+    async copyItem(obj) {
+      let cp = {}
+      Object.assign(cp, obj)
+      cp.id = undefined
+      this.doc_type.doc_fields.push(cp)
+    },
+
+    async removeItem(obj) {
+      if (!confirm("Confirm delete?")) return
+      const vm = this;
+      let df = vm.doc_type.doc_fields;
+      df = df.filter(function(item) {
+          return item.id !== obj.id
+      });
+      if (obj.id !== undefined) {
+        await vm.doGet("dtf_delete/"+obj.id, 
+          (b)=>{
+            vm.setStatusMessage(b);
+          }
+          , vm.setStatusMessage)
+      }      
+    }
+
   },
 };
 </script>

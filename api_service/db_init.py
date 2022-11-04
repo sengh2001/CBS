@@ -34,12 +34,8 @@ def setup_db(config):
     u.first_name, u.last_name = "EIS", "Admin"
     u.email = "sodhi@iitrpr.ac.in"
     u.role = "SUP"
+    u.org_unit = "/"
     u.save()
-    up = UserProfile()
-    up.user = u.id
-    up.dob = DT.strptime("1980-01-22", "%Y-%m-%d")
-    up.area = "COM"
-    up.save()
     print("Added the admin user.")
 
 if __name__ == "__main__":
