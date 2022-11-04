@@ -1,11 +1,11 @@
 <!--
-Component for searching leave rules.
+Component for searching doc types.
 
 @author Balwinder Sodhi
 -->
 <template>
   <div class="container-fluid">
-    <h5>Find Leave Rules</h5>
+    <h5>Find Doc Types</h5>
     <form @submit.prevent="find(false)">
       <div class="row mb-2">
         <div class="col-md-2">
@@ -84,7 +84,7 @@ Component for searching leave rules.
 
 <script>
 export default {
-  name: "LeaveRuleSearch",
+  name: "DocTypeSearch",
   data: function () {
     return {
       rule: { pg_no: 1 },
@@ -94,7 +94,7 @@ export default {
   computed: {
   },
   created: function () {
-    console.log("Creating LeaveRuleSearch");
+    console.log("Creating DocTypeSearch");
   },
   mounted: function () {
     if (sessionStorage.ruleSrch) {

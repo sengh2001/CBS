@@ -15,8 +15,8 @@ Component for user lookup using typeahead.
 </template>
 
 <script>
-import VueBootstrapTypeahead from "./VueBootstrapTypeahead.vue";
 import _ from "lodash";
+import VueBootstrapTypeahead from "./VueBootstrapTypeahead.vue";
 
 export default {
   name: "UserLookupComp",

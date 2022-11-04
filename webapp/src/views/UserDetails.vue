@@ -10,18 +10,22 @@ Component for user details.
         <div class="fs-5 float-start">
           <span v-if="isEdit">
             <span>{{ user.first_name }} {{ user.last_name }}</span>
-            <button @click="showProfile=!showProfile" class="ms-2 btn btn-sm btn-outline-primary">
-              {{showProfile ? "Back" : "Edit Profile"}}
-            </button>
           </span>
           <span v-else>User Details</span>
         </div>
-        <a class="btn btn-sm btn-success float-end" href="#/user">Add Another</a>
+        <span class="float-end">
+          <button class="btn btn-outline-primary me-2"
+            @click="save" type="submit">
+            Save <i class="bi bi-save-fill"></i>
+          </button>
+          <button class="btn btn-outline-danger me-2" @click="reset" type="reset">
+            Clear <i class="bi bi-eraser-fill"></i>
+          </button>
+          <a class="btn btn-outline-success" href="#/user">Add Another</a>
+        </span>
       </div>
       <div class="card-body">
-        <user-profile v-if="isEdit && showProfile" :userId="user.id"/>
-        <form v-else @submit.prevent="save">
-          <div class="row">
+        <div class="row">
             <div class="col-md-4">
               <label for="st_email">Email</label>
               <input type="email" required class="form-control" id="st_email" v-model="user.email"
@@ -37,39 +41,31 @@ Component for user details.
               <input type="text" required class="form-control" id="st_lastnm" v-model="user.last_name"
                 :disabled="viewOnly" />
             </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4">
+            <label for="orgu">Org. Unit</label>
+            <input type="text" required class="form-control" id="orgu"
+            v-model="user.org_unit" :disabled="viewOnly" />
           </div>
-          <div class="row">
-            <div class="col-md-4">
-              <label for="st_role">Role</label>
-              <select required class="form-select" id="st_role" v-model="user.role" :disabled="viewOnly">
-                <option v-for="x in SD.UserRoles" v-bind:value="x.id" :key="x.id">
-                  {{ x.value }}
-                </option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <div class="form-check mt-4">
-                <input class="form-check-input" type="checkbox" id="gridCheck" v-model="user.is_locked"
-                  :disabled="viewOnly" />
-                <label class="form-check-label" for="gridCheck">
-                  Locked?
-                </label>
-              </div>
-            </div>
-            <div class="col" v-if="!viewOnly">
-              <div class="mt-4">
-                <button class="btn btn-outline-success me-2" type="submit">
-                  Save
-                  <i class="bi bi-save-fill"></i>
-                </button>
-                <button class="btn btn-outline-danger" @click="reset" type="reset">
-                  Clear
-                  <i class="bi bi-eraser-fill"></i>
-                </button>
-              </div>
+          <div class="col-md-4">
+            <label for="st_role">Role</label>
+            <select required class="form-select" id="st_role" v-model="user.role" :disabled="viewOnly">
+              <option v-for="x in SD.UserRoles" v-bind:value="x.id" :key="x.id">
+                {{ x.value }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <div class="form-check mt-4">
+              <input class="form-check-input" type="checkbox" id="gridCheck" v-model="user.is_locked"
+                :disabled="viewOnly" />
+              <label class="form-check-label" for="gridCheck">
+                Locked?
+              </label>
             </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   </div>
@@ -77,16 +73,12 @@ Component for user details.
 
 <script>
 import _ from "lodash";
-import UserProfile from "./UserProfile.vue"
 export default {
   name: "UserDetails",
-  components: {
-    UserProfile
-  },
+  components: { },
   data: function () {
     return {
       user: {},
-      showProfile: false
     };
   },
   computed: {
@@ -143,7 +135,6 @@ export default {
         }, vm.setStatusMessage);
     },
     reset() {
-      this.showProfile = false;
       this.user = {};
       console.log("Clearing user details.");
     },

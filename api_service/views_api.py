@@ -13,28 +13,19 @@ from werkzeug.utils import secure_filename
 from views_common import *
 
 
-def _check_access(user_id:int, leave_type:str = None):
+def _check_doc_action(doc_item):
+    if is_user_in_role("SUP"):
+        return # Superuser is allowed all actions
+    
     cu = session_user()
-    myrole = cu["role"]
-    if cu["id"] == user_id or is_user_in_role(["SUP"]):
-        return
-    uobj = User.get_by_id(user_id)
-    # TODO
-
-
-
-def _check_request_status(old_status, new_status, start_dt):
-    dt = DT.strptime(start_dt, "%Y-%m-%d") if isinstance(start_dt, str) else start_dt
-    faq = DocAction.select().where(DocAction.status_after == new_status)
-    faq = faq.where(DocAction.status_now.in_([old_status, "ANY"]))
-    faq = faq.where(DocAction.user_role.in_(["ANY", current_role()]))
+    my_role, my_ou = cu["role"], cu["org_unit"]
+    daq = doc_item.doc_type.doc_actions
+    daq = daq.where(DocAction.status_now.in_([doc_item.status, "ANY"]))
+    daq = daq.where(DocAction.user_role.in_(["ANY", my_role]))
+    daq = daq.where(DocAction.allowed_ou.contains(my_ou))
     
-    if not faq.exists():
+    if not daq.exists():
         raise AppException("Change not allowed.")
-    
-    if not is_user_in_role("SUP") and \
-        (old_status in ["APP", "REJ", "COM"]) and (DT.now() > dt):
-        raise AppException("Change not allowed. Please contact IT support to override.")
 
 
 def _save_uploaded_file(dataFile, dataType):
