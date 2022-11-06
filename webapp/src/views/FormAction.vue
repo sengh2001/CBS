@@ -21,13 +21,17 @@ Component for form actions.
             <div class="col-md-2">Status (Current)</div>
             <div class="col">Action</div>
             <div class="col">Status (After)</div>
-            <div class="col-md-2">Match Area</div>
+            <div class="col-md-2">Allowed OU</div>
           </div>
           <div class="row mb-2" :class="{'border border-success': !pb.id}" v-for="(pb, i) in formActions" :key="pb.id">
             <div class="col-md-2">
               <div class="input-group">
                 <span class="fw-bold me-2">{{i+1}}. </span>
-                <input class="form-control" type="text" v-model="pb.form" />
+                <select class="form-select" v-model="pb.doc_type">
+                  <option v-for="x in allDocTypes" v-bind:value="x.id" :key="x.id">
+                    {{ x.value }}
+                  </option>
+                </select>
               </div>
             </div>
             <div class="col">
@@ -58,7 +62,7 @@ Component for form actions.
             </div>
             <div class="col-md-2">
               <div class="form-check form-check-inline">
-                <input class="form-check-input" type="checkbox" v-model="pb.match_area">
+                <input class="form-control" type="text" v-model="pb.allowed_ou">
               </div>
               <button title="Save this item" class="btn btn-sm btn-outline-primary me-2" @click="saveItem(pb)"><i class="bi bi-save" role="button"></i></button>
               <button title="Copy this item as new row" class="btn btn-sm btn-outline-success me-2" @click="copyItem(pb)"><i class="bi bi-clipboard-plus" role="button"></i></button>
@@ -78,15 +82,18 @@ export default {
   data: function () {
     return {
       formActions: [],
+      allDocTypes: []
     };
   },
   computed: { },
-  async created() {
-    console.log("Creating FormAction");
+  async mounted() {
+    console.log("Mounting FormAction");
     const vm = this;
-    await vm.doGet("list_form_actions", 
-      b => { vm.formActions = b },
-      vm.setStatusMessage)
+    await vm.doGet("list_form_actions", b => { vm.formActions = b },
+            vm.setStatusMessage)
+    
+    await vm.doGet("all_doc_types", b => { vm.allDocTypes = b },
+            vm.setStatusMessage)
   },
   methods: {
     addActions() {

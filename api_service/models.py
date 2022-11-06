@@ -28,7 +28,8 @@ def create_schema():
     with db:
         db.create_tables(
             [SystemSetting, User, DocAction, AuditLog,
-            DocItem, DocField, DocFieldValue, DocType]
+            DocItem, DocField, DocFieldValue, DocType,
+            DocItemFile, DocItemNote]
         )
         logging.info("DB tables created.")
 
@@ -106,7 +107,9 @@ class DocField(BaseModel):
     # float, integer, string, date, boolean
     field_type = CharField(max_length=60)
     optional = BooleanField(constraints=[SQL('DEFAULT TRUE')])
-    description = TextField(null=True)
+    finder = BooleanField(constraints=[SQL('DEFAULT FALSE')])
+    display_seq = SmallIntegerField(default=0)
+    label = CharField(max_length=100)
 
     class Meta:
         indexes = ()
@@ -115,14 +118,23 @@ class DocField(BaseModel):
 class DocItem(BaseModel):
     doc_type = ForeignKeyField(DocType, backref="doc_items")
     status = CharField(max_length=40)
+
+
+class DocItemFile(BaseModel):
+    doc_item = ForeignKeyField(DocItem, backref="doc_files")
     # UUID value
-    doc_file = CharField(max_length=50)
+    doc_file = CharField(max_length=100)
     
     class Meta:
         indexes = (
             # Unique index
-            (("doc_type", "status", "doc_file"), True),
+            (("doc_item", "doc_file"), True),
         )
+
+
+class DocItemNote(BaseModel):
+    doc_item = ForeignKeyField(DocItem, backref="doc_notes")
+    note = TextField()
 
 
 class DocFieldValue(BaseModel):

@@ -24,5 +24,16 @@
             ]
         }
     ],
-    "links": [ ]
+    "links": [ 
+        {
+            "label": "Add Foo",
+            "href": "#/doc_item/Foo",
+            "roles": "*"
+        },
+        {
+            "label": "Add Bar",
+            "href": "#/doc_item/Bar",
+            "roles": "*"
+        }
+    ]
 }

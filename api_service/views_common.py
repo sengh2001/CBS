@@ -137,7 +137,7 @@ def save_entity(obj):
 
 
 def update_entity(entity, obj, exclude=[]):
-    txn_no = int(obj.txn_no)
+    txn_no = int(obj.txn_no or 0)
     obj.txn_no = 1 + txn_no
     obj.upd_ts = DT.now()
     obj.upd_by = logged_in_user().email

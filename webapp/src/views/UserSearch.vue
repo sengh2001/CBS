@@ -62,7 +62,7 @@ Component for searching users.
           <div class="col-md-1">S#</div>
           <div class="col">Name</div>
           <div class="col-md-2">Role</div>
-          <div class="col-md-2">Area</div>
+          <div class="col-md-2">Org Unit</div>
           <div class="col-md-1">Locked</div>
         </div>
         <p v-if="results.users.length == 0">Nothing to show yet!</p>
@@ -71,12 +71,8 @@ Component for searching users.
           <div class="col">
             <a :href="'#/user/'+r.id">{{r.first_name}} {{r.last_name}}</a>
             <span class="ms-2">{{r.email}}</span>
-            <span class="ms-2">DoJ:{{r.profile.doj}}</span>
           </div>
-          <div class="col-md-2">
-            {{labelFor(SD.UserRoles, r.role)}}
-          </div>
-          <div class="col-md-2">{{labelFor(SD.WorkAreas, r.profile.area)}}</div>
+          <div class="col-md-2">{{r.org_unit}}</div>
           <div class="col-md-1">{{r.is_locked?"Yes":"No"}}</div>
         </div>
       </div>
@@ -116,11 +112,6 @@ export default {
     }
   },
   methods: {
-    toUserDetails(u) {
-      const area = this.labelFor(this.SD.WorkAreas, u.profile.area)
-      const et = this.labelFor(this.SD.UserRoles, u.role)
-      return `${et}. DoJ: ${u.profile.doj}. Area: ${area}.`
-    },
     async next_pg() {
       this.user.pg_no += 1;
       await this.find(true);

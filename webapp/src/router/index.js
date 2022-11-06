@@ -5,6 +5,7 @@ import UserDetails from '../views/UserDetails.vue'
 import UserSearch from '../views/UserSearch.vue'
 import FormAction from "../views/FormAction.vue"
 import DocType from "../views/DocType.vue"
+import DocItem from "../views/DocItem.vue"
 import DocTypeSearch from "../views/DocTypeSearch.vue"
 
 const router = createRouter({
@@ -34,6 +35,12 @@ const router = createRouter({
       path: '/doc_type/:id?',
       name: 'DocType',
       component: DocType
+    },
+    {
+      path: '/doc_item/:type/:id?',
+      name: 'DocItem',
+      component: DocItem,
+      props: true
     },
     {
       path: '/doc_type.find',

@@ -7,10 +7,7 @@ Component for leave rules.
   <div class="card">
     <div class="card-header">
       <span>Doc Type</span>
-      <span class="float-end" v-if="!viewOnly">
-        <button type="button" class="btn btn-sm btn-outline-primary me-2" @click="saveDocType">Save</button>
-        <button type="button" class="btn btn-sm btn-outline-danger" @click="reset">Clear</button>
-      </span>
+      <a class="btn btn-outline-success float-end" href="#/doc_type">Add Another</a>
     </div>
     <div class="card-body">
       <div class="row mb-2">
@@ -23,6 +20,12 @@ Component for leave rules.
           <label for="docdesc">Description</label>
           <input type="text" required class="form-control" id="docdesc"
           v-model="doc_type.description" :disabled="viewOnly" />
+        </div>
+        <div class="col-md-2">
+          <span class="float-end mt-4" v-if="!viewOnly">
+            <button type="button" class="btn btn-sm btn-outline-primary me-2" @click="saveDocType">Save</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" @click="reset">Clear</button>
+          </span>
         </div>
       </div>
     </div>
@@ -37,17 +40,19 @@ Component for leave rules.
       <div v-else>
         <div class="row fw-bold">
           <div class="col-md-1">S#.</div>
-          <div class="col-md-3">Field Name</div>
+          <div class="col-md-2">Field Name</div>
           <div class="col-md-2">Field Type</div>
           <div class="col-md-1">Optional</div>
-          <div class="col">Description</div>
+          <div class="col-md-1">Finder</div>
+          <div class="col-md-1">Display Seq.</div>
+          <div class="col">Label</div>
         </div>
         <div class="row mb-2" :class="{'border border-success': !pb.id}"
           v-for="(pb, i) in doc_type.doc_fields" :key="pb.id">
           <div class="col-md-1">
             <span class="fw-bold me-2">{{i+1}}.</span>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2">
             <div class="input-group">
               <input class="form-control" type="text" v-model="pb.name" />
             </div>
@@ -64,9 +69,17 @@ Component for leave rules.
               <input class="form-check-input" type="checkbox" v-model="pb.optional">
             </div>
           </div>
+          <div class="col-md-1">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" v-model="pb.finder">
+            </div>
+          </div>
+          <div class="col-md-1">
+            <input class="form-control" type="number" min="0" v-model="pb.display_seq" />
+          </div>
           <div class="col">
             <div class="input-group">
-              <input class="form-control" type="text" v-model="pb.description" />
+              <input class="form-control" type="text" v-model="pb.label" />
               <button title="Save this item" class="btn btn-sm btn-outline-primary me-2" @click="saveItem(pb)"><i class="bi bi-save" role="button"></i></button>
               <button title="Copy this item as new row" class="btn btn-sm btn-outline-success me-2" @click="copyItem(pb)"><i class="bi bi-clipboard-plus" role="button"></i></button>
               <button title="Delete this item" class="btn btn-sm btn-outline-danger" @click="removeItem(pb)"><i class="bi bi-trash-fill"></i></button>
@@ -182,7 +195,7 @@ export default {
       if (!confirm("Confirm delete?")) return
       const vm = this;
       let df = vm.doc_type.doc_fields;
-      df = df.filter(function(item) {
+      vm.doc_type.doc_fields = df.filter(function(item) {
           return item.id !== obj.id
       });
       if (obj.id !== undefined) {
