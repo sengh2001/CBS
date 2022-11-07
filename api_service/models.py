@@ -106,7 +106,7 @@ class DocField(BaseModel):
     name = CharField(max_length=60, index=True)
     # float, integer, string, date, boolean
     field_type = CharField(max_length=60)
-    optional = BooleanField(constraints=[SQL('DEFAULT TRUE')])
+    optional = BooleanField(constraints=[SQL('DEFAULT FALSE')])
     finder = BooleanField(constraints=[SQL('DEFAULT FALSE')])
     display_seq = SmallIntegerField(default=0)
     label = CharField(max_length=100)
@@ -123,17 +123,12 @@ class DocItem(BaseModel):
 class DocItemFile(BaseModel):
     doc_item = ForeignKeyField(DocItem, backref="doc_files")
     # UUID value
-    doc_file = CharField(max_length=100)
-    
-    class Meta:
-        indexes = (
-            # Unique index
-            (("doc_item", "doc_file"), True),
-        )
+    doc_file = TextField()
 
 
 class DocItemNote(BaseModel):
     doc_item = ForeignKeyField(DocItem, backref="doc_notes")
+    author = ForeignKeyField(User, backref="user_notes")
     note = TextField()
 
 

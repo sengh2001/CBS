@@ -41,11 +41,13 @@ Component for searching doc types.
             <div class="col-md-2">Date</div>
             <div class="col">Note</div>
           </div>
-          <div v-if="doc_item.doc_notes.length > 0" class="row"><div class="col-md-12">Nothing to show yet!</div></div>
-          <div v-else class="row" v-for="(n, i) in doc_item.doc_notes" :key="n">
+          <div v-if="doc_item.doc_notes.length == 0" class="row"><div class="col-md-12">Nothing to show yet!</div></div>
+          <div v-else class="row border-top" v-for="(n, i) in doc_item.doc_notes" :key="n">
             <div class="col-md-1">{{i+1}}</div>
-            <div class="col-md-2">{{n.ins_by}}</div>
-            <div class="col-md-2">{{n.ins_ts}}</div>
+            <div class="col-md-2">
+              {{n.author.first_name + " " + n.author.last_name +
+              " (" + n.author.email+")"}}</div>
+            <div class="col-md-2">{{fmtDate(n.ins_ts)}}</div>
             <div class="col">{{n.note}}</div>
           </div>
         </div>
@@ -81,6 +83,7 @@ export default {
     await vm.getFormActions(vm.type, vm.doc_item.status,
                             (b)=>{vm.actions = b;})
     await this.loadDocFields()
+    if (vm.isEdit) await vm.load()
   },
   methods: {
     addFileToPayload(payload, elm, propName) {

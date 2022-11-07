@@ -2,10 +2,11 @@
     <button disabled class="btn btn-primary" v-if="!hasActions">Actions</button>
     <div v-else>
         <div class="input-group">
-            <textarea class="form-control" v-model="note" rows="2"></textarea>
+            <textarea class="form-control" v-model="note" rows="2"
+            placeholder="A note is required for all actions."></textarea>
             <div class="btn-group">
                 <div class="dropdown">
-                    <button v-if="showActions" type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"
+                    <button :disabled="noteEmpty" v-if="showActions" type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"
                         aria-expanded="false">
                         {{ buttonLabel }}
                     </button>
@@ -22,6 +23,7 @@
     </div>
 </template>
 <script>
+import _ from "lodash"
 export default {
     name: "WorkflowActions",
     components: {},
@@ -41,11 +43,14 @@ export default {
     },
     emits: ["actionSelected"],
     data: function () {
-        return {notes: ""};
+        return { note: "" };
     },
     computed: {
         hasActions() {
             return Object.keys(this.roleActions).length > 0
+        },
+        noteEmpty() {
+            return _.isEmpty(this.note)
         }
     },
     async mounted() {

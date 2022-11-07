@@ -250,7 +250,11 @@ def get_all_doc_types():
 def _fetch_doc_item(my_id):
     di = DocItem.get_by_id(my_id)
     df = [f.doc_file for f in di.doc_files]
-    dn = [model_to_dict(n, recurse=False) for n in di.doc_notes]
+    dn = []
+    for n in di.doc_notes:
+        obj = model_to_dict(n, recurse=False)
+        obj["author"] = model_to_dict(n.author, recurse=False)
+        dn.append(obj)
     data = model_to_dict(di, recurse=False)
     data["doc_files"] = df
     data["doc_notes"] = dn
@@ -281,11 +285,12 @@ def save_doc_item():
                     fd[k] = v
         
         editing = "id" in fd
-        dtn = fd["doc_type_name"]
-        dtq = DocType.select().where(DocType.name==dtn)
-        if not dtq.exists():
-            raise AppException("Doc type {} not found!".format(dtn))
-        fd["doc_type"] = dtq[0].id
+        if not editing:
+            dtn = fd.get("doc_type_name")
+            dtq = DocType.select().where(DocType.name==dtn)
+            if not dtq.exists():
+                raise AppException("Doc type {} not found!".format(dtn))
+            fd["doc_type"] = dtq[0].id
         dfl = request.files.getlist("dataFiles")
         files_info = []
         for file in dfl:
@@ -304,6 +309,7 @@ def save_doc_item():
                 raise AppException("Failed to save doc item. Please retry later.")
 
             din = DocItemNote(doc_item=di.id, note=fd["action_note"])
+            din.author = session_user()["id"]
             rc += save_entity(din)
 
             for fin in files_info:

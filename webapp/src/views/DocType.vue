@@ -204,7 +204,7 @@ export default {
             vm.setStatusMessage(b);
           }
           , vm.setStatusMessage)
-      }      
+      }     
     }
 
   },
