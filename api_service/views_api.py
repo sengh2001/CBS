@@ -152,8 +152,8 @@ def get_doc_type_fields(doc_type):
         dtq = DocType.select().where(DocType.name == doc_type)
         if not dtq.exists():
             return error_json("Doc type not found!")
-        
-        df = [model_to_dict(x, recurse=False) for x in dtq[0].doc_fields]
+        dfq = dtq[0].doc_fields.order_by(DocField.display_seq)
+        df = [model_to_dict(x, recurse=False) for x in dfq]
         return ok_json(df)
     except Exception as ex:
         msg = log_error(ex, "Error loading doc fields.")
@@ -255,9 +255,12 @@ def _fetch_doc_item(my_id):
         obj = model_to_dict(n, recurse=False)
         obj["author"] = model_to_dict(n.author, recurse=False)
         dn.append(obj)
+    
     data = model_to_dict(di, recurse=False)
     data["doc_files"] = df
     data["doc_notes"] = dn
+    for fv in di.field_values:
+        data["__DF{0}".format(fv.doc_field.id)] = fv.field_val
     return data
 
 
@@ -318,6 +321,20 @@ def save_doc_item():
             
             if rc != len(files_info) + 2:
                 raise AppException("Failed to save some items. Please retry later.")
+
+            # Delete all field values for the item
+            delq = DocFieldValue.delete()
+            delq.where(DocFieldValue.doc_item == di.id).execute()
+
+            # Now add the new values
+            for (k, v) in fd.items():
+                if k.startswith("__DF"):
+                    dfv = DocFieldValue(doc_item=di.id)
+                    dfv.doc_field=int(k[4:])
+                    dfv.field_val = v
+                    rc = save_entity(dfv)
+                    if rc == 0:
+                        raise AppException("Failed to save field value!")
 
         res = _fetch_doc_item(di.id)
         return ok_json(res)

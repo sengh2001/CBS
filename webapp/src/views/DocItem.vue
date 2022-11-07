@@ -33,6 +33,16 @@ Component for searching doc types.
         </div>
       </div>
       <div class="card">
+        <div class="card-body">
+          <div class="row row-cols-3">
+            <div class="col" v-for="df in doc_fields" :key="df.id">
+              <doc-field-comp :doc-field="df" 
+              v-model="doc_item['__DF'+df.id]"/>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
         <div class="card-header">Notes History</div>
         <div class="card-body">
           <div class="row hdr-row">
@@ -58,10 +68,11 @@ Component for searching doc types.
 
 <script>
 import WorkflowActions from './WorkflowActions.vue';
+import DocFieldComp from './DocFieldComp.vue';
 export default {
   name: "DocItem",
   components: {
-    WorkflowActions
+    WorkflowActions, DocFieldComp
   },
   // Will be set by the router definition
   props: ["type", "id"],
@@ -86,6 +97,9 @@ export default {
     if (vm.isEdit) await vm.load()
   },
   methods: {
+    inputType(df) {
+
+    },
     addFileToPayload(payload, elm, propName) {
       if (elm.files.length > 0) {
         for (let i = 0; i < elm.files.length; i++) {

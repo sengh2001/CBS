@@ -24,10 +24,10 @@
         {"id": "RECALL", "value": "Recalled"}
     ],
     "DocFieldTypes": [
-        {"id": "STR", "value": "String"},
-        {"id": "INT", "value": "Integer Value"},
-        {"id": "FLT", "value": "Float Value"},
-        {"id": "BOL", "value": "Boolean Value"},
-        {"id": "DAT", "value": "Date Time"}
+        {"id": "text", "value": "String"},
+        {"id": "integer", "value": "Integer Value"},
+        {"id": "float", "value": "Float Value"},
+        {"id": "boolean", "value": "Boolean Value"},
+        {"id": "date", "value": "Date Time"}
     ]
 }

@@ -137,12 +137,6 @@ class DocFieldValue(BaseModel):
     doc_item = ForeignKeyField(DocItem, backref="field_values")
     field_val = CharField(max_length=150, null=True)
 
-    class Meta:
-        indexes = (
-            # Unique index
-            (("doc_field", "doc_item"), True),
-        )
-
 
 class DocAction(BaseModel):
     doc_type = ForeignKeyField(DocType, backref="doc_actions")
