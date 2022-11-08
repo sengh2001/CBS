@@ -7,6 +7,7 @@ import FormAction from "../views/FormAction.vue"
 import DocType from "../views/DocType.vue"
 import DocItem from "../views/DocItem.vue"
 import DocTypeSearch from "../views/DocTypeSearch.vue"
+import DocItemSearch from "../views/DocItemSearch.vue"
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -37,7 +38,12 @@ const router = createRouter({
       component: DocType
     },
     {
-      path: '/doc_item/:type/:id?',
+      path: '/doc_item.find',
+      name: 'DocItemSearch',
+      component: DocItemSearch
+    },
+    {
+      path: '/doc_item/:docTypeId/:id?',
       name: 'DocItem',
       component: DocItem,
       props: true

@@ -9,6 +9,10 @@ Component for searching doc types.
     <form @submit.prevent="find(false)">
       <div class="row mb-2">
         <div class="col">
+          <label for="grp">Group Name</label>
+          <input id="grp" class="form-control" type="text" v-model="crit.group" />  
+        </div>
+        <div class="col">
           <label for="sub_role">Doc Type Name</label>
           <input class="form-control" type="text" v-model="crit.name" />  
         </div>
@@ -37,6 +41,7 @@ Component for searching doc types.
         <div class="row fw-bold border-info border-bottom border-2">
           <div class="col-md-1">S#</div>
           <div class="col-md-2">Name</div>
+          <div class="col-md-2">Group</div>
           <div class="col">Details</div>
         </div>
         <p v-if="!hasResults">Nothing to show yet!</p>
@@ -45,6 +50,7 @@ Component for searching doc types.
           <div class="col-md-2">
             <a :href="'#/doc_type/' + r.id">{{r.name}}</a>
           </div>
+          <div class="col-md-2">{{r.group}}</div>
           <div class="col">
             {{r.description}}
           </div>

@@ -72,10 +72,10 @@ def _get_audit(ent_id, ent_name):
 
 
 @auth_check
-def get_form_actions(form_nm, status):
+def get_form_actions(doc_type, status):
     try:
-        qry = DocAction.select().join(DocType)
-        qry = qry.where(DocType.name == form_nm)
+        qry = DocAction.select()
+        qry = qry.where(DocAction.doc_type == doc_type)
         qry = qry.where(DocAction.status_now.in_([status, "ANY"]))
         qry = qry.where(DocAction.user_role.in_([current_role(), "ANY"])).distinct()
         ser = [{"arg": x.status_after, "label": x.action} for x in qry]
@@ -147,17 +147,30 @@ def delete_doc_field(my_id):
         return error_json(msg)
 
 @auth_check
-def get_doc_type_fields(doc_type):
+def get_doc_type_fields(my_id):
     try:
-        dtq = DocType.select().where(DocType.name == doc_type)
-        if not dtq.exists():
-            return error_json("Doc type not found!")
-        dfq = dtq[0].doc_fields.order_by(DocField.display_seq)
+        dtq = DocType.get_by_id(my_id)
+        dfq = dtq.doc_fields
+        dfq = dfq.order_by(DocField.display_seq)
         df = [model_to_dict(x, recurse=False) for x in dfq]
         return ok_json(df)
     except Exception as ex:
         msg = log_error(ex, "Error loading doc fields.")
         return error_json(msg)
+
+
+@auth_check
+def get_finder_fields_for_doc(my_id):
+    try:
+        doct = DocType.get_by_id(my_id)
+        dfq = doct.doc_fields.where(DocField.finder == True)
+        dfq = dfq.order_by(DocField.display_seq)
+        df = [model_to_dict(x, recurse=False) for x in dfq]
+        return ok_json(df)
+    except Exception as ex:
+        msg = log_error(ex, "Error loading finder fields.")
+        return error_json(msg)
+
 
 @auth_check(roles=["SUP"])
 def save_doc_field():
@@ -236,11 +249,12 @@ def get_doc_type(my_id):
         return error_json(msg)
 
 
-@auth_check(roles=["SUP"])
+@auth_check
 def get_all_doc_types():
     try:
         dt = DocType.select()
-        data = [{"id": x.id, "value": x.name} for x in dt]
+        data = [{"id": x.id, "value": "{0}/{1}".format(x.group, x.name)}
+                for x in dt]
         return ok_json(data)
     except Exception as ex:
         msg = log_error(ex, "Error when fetching doc types.")
@@ -288,12 +302,6 @@ def save_doc_item():
                     fd[k] = v
         
         editing = "id" in fd
-        if not editing:
-            dtn = fd.get("doc_type_name")
-            dtq = DocType.select().where(DocType.name==dtn)
-            if not dtq.exists():
-                raise AppException("Doc type {} not found!".format(dtn))
-            fd["doc_type"] = dtq[0].id
         dfl = request.files.getlist("dataFiles")
         files_info = []
         for file in dfl:
@@ -340,4 +348,41 @@ def save_doc_item():
         return ok_json(res)
     except Exception as ex:
         msg = log_error(ex, "Error when saving doc item.")
+        return error_json(msg)
+
+
+def find_doc_items():
+    try:
+        fd = request.get_json(force=True)
+        dt_id, status = fd.get("doc_type"), fd.get("status")
+        fc_min, fc_max = fd.get("min_files"), fd.get("max_files")
+        note = fd.get("note")
+        crtr, updt = int(fd.get("creator", 0)), int(fd.get("updater", 0))
+        pg_no = int(fd.get('pg_no', 1))
+        
+        dtq = DocItem.select().join(DocType)
+        dtq = dtq.where(DocType.id == dt_id)
+        if status:
+            dtq = dtq.where(DocItem.status == status)
+        if crtr:
+            ins_by = User.get_by_id(crtr).email
+            dtq = dtq.where(DocItem.ins_by == ins_by)
+        if updt:
+            upd_by = User.get_by_id(updt).email
+            dtq = dtq.where(DocItem.upd_by == upd_by)
+
+        if note:
+            dnq = DocItemNote.select().where(DocItemNote.note.contains(note))
+            dnq = dnq.group_by(DocItemNote.doc_item)
+            dnq = dnq.having(fn.Count(DocItemNote.id) > 0)
+
+        # TODO: add filters for remaining criteria
+        data = dtq.order_by(-DocItem.id).paginate(pg_no, PAGE_SIZE)
+        serialized = [model_to_dict(r) for r in data]
+        has_next = len(data) >= PAGE_SIZE
+        res = {"items": serialized, "pg_no": pg_no, "pg_size": PAGE_SIZE,
+               "has_next": has_next}
+        return ok_json(res)
+    except Exception as ex:
+        msg = log_error(ex, "Error when searching doc items.")
         return error_json(msg)

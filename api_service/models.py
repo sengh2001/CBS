@@ -95,10 +95,13 @@ class User(BaseModel):
 
 class DocType(BaseModel):
     name = CharField(max_length=60, index=True)
+    group = CharField(max_length=60, index=True)
     description = TextField(null=True)
 
     class Meta:
-        indexes = ()
+        indexes = (
+            (("name", "group"), True),
+        )
 
 
 class DocField(BaseModel):

@@ -26,8 +26,8 @@
     ],
     "links": [ 
         {
-            "label": "Add Foo",
-            "href": "#/doc_item/Foo",
+            "label": "Find Documents",
+            "href": "#/doc_item.find",
             "roles": "*"
         },
         {

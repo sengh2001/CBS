@@ -42,7 +42,7 @@ Component for searching doc types.
           </div>
         </div>
       </div>
-      <div class="card">
+      <div class="card mt-2">
         <div class="card-header">Notes History</div>
         <div class="card-body">
           <div class="row hdr-row">
@@ -75,7 +75,7 @@ export default {
     WorkflowActions, DocFieldComp
   },
   // Will be set by the router definition
-  props: ["type", "id"],
+  props: ["docTypeId", "id"],
   data: function () {
     return {
       doc_item: {status: "DRA", doc_notes: [], doc_files: []  },
@@ -90,16 +90,13 @@ export default {
   async mounted() {
     console.log("Creating DocItem");
     const vm=this;
-    vm.doc_item.doc_type_name = vm.type
-    await vm.getFormActions(vm.type, vm.doc_item.status,
+    vm.doc_item.doc_type = vm.docTypeId
+    await vm.getDocTypeActions(vm.docTypeId, vm.doc_item.status,
                             (b)=>{vm.actions = b;})
     await this.loadDocFields()
     if (vm.isEdit) await vm.load()
   },
   methods: {
-    inputType(df) {
-
-    },
     addFileToPayload(payload, elm, propName) {
       if (elm.files.length > 0) {
         for (let i = 0; i < elm.files.length; i++) {
@@ -132,10 +129,11 @@ export default {
         if (res.data.status == "OK") {
           vm.doc_item = res.data.body;
           if(!vm.isEdit) {
-            vm.$router.push({path: `/doc_item/${vm.type}/${vm.doc_item.id}`, query: { nr: 1}});
+            vm.$router.push({path: `/doc_item/${vm.docTypeId}/${vm.doc_item.id}`, query: { nr: 1}});
           } else {
             vm.setStatusMessage("Saved the Doc Item!");
           }
+          vm.action_note = ""
         } else {
           vm.setStatusMessage(res.data.body);
         }
@@ -152,13 +150,13 @@ export default {
     },
     async loadDocFields() {
       let vm = this;
-      console.log("Loading doc fields for id=" + vm.type);
-      await vm.doGet(`dtf_get/${vm.type}`, (b) => { vm.doc_fields = b; },
+      console.log("Loading doc fields for id=" + vm.docTypeId);
+      await vm.doGet(`dtf_get/${vm.docTypeId}`, (b) => { vm.doc_fields = b; },
         vm.setStatusMessage)
     },
     async clear() {
-      this.doc_item = {doc_type_name: this.type, status: "DRA", 
-                      doc_notes: [], doc_files: [] }
+      this.doc_item = {status: "DRA", doc_notes: [], doc_files: [],
+                      doc_type: this.docTypeId }
       this.doc_fields = []
     }
   }

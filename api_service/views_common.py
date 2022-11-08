@@ -215,12 +215,31 @@ def logout(send_response=True):
         return ok_json("Logged out.")
 
 
+def get_my_doc_types_menus():
+    my_role = current_role()
+    dtq = DocAction.select(DocType).join(DocType)
+    dtq = dtq.where(DocAction.user_role.in_(["ANY", my_role])).distinct()
+    dt = {}
+    for obj in dtq:
+        if obj.group not in dt:
+            dt[obj.group] = {"label": obj.group, "items": []}
+        
+        # Route's link pattern must match the one in VueJS router config
+        mi = {"label": obj.name, 
+                "href": "#/doc_find/{0}/{1}".format(obj.group, obj.name),
+                "roles": "*"}
+        dt[obj.group]["items"].append(mi)
+    
+    return dt.values()
+
+
+
 def make_nav(role):
     try:
         # TODO: Cache the navs to avoid recomputing
+        links, menus = [], []
         with open(os.path.join(app.root_path, "nav.json"), "r") as nd:
             nav = json.load(nd)
-            links, menus = [], []
             for l in nav.pop("links"):
                 r = l.pop("roles")
                 if "*" in r or role in r:
@@ -236,7 +255,9 @@ def make_nav(role):
                     m["items"] = mi
                     menus.append(m)
 
-            return {"menus": menus, "links": links}
+        # m2 = get_my_doc_types_menus()
+        # menus.extend(m2)
+        return {"menus": menus, "links": links}
 
     except Exception as ex:
         logging.exception("Error occurred when loading nav data.")

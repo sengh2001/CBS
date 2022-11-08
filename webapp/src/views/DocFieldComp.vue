@@ -4,10 +4,8 @@
 <template>
   <div>
     <label :for="elmId">{{docField.label}}</label>
-    <input :id="elmId"
-      :class="fieldClass" :type="fieldType" :value="modelValue"
-      @input="$emit('update:modelValue', $event.target.value)"
-    />
+    <input :id="elmId" :class="fieldClass" :type="fieldType"
+      v-model="value"/>
   </div>
 </template>
 
@@ -29,9 +27,21 @@ export default {
       const f = this.docField
       return `d_${f.doc_type}_${f.id}_${f.field_type}`
     },
+    isCheckbox() {
+      return this.docField.field_type == "boolean"
+    },
+    value: {
+      get() {
+        if (this.isCheckbox) return "on" == this.modelValue
+        else return this.modelValue
+      },
+      set(value) {
+        this.$emit('update:modelValue', value)
+      }
+    },
     fieldType() {
       let myType = "text"
-      if (this.docField.field_type == "boolean") {
+      if (this.isCheckbox) {
         myType = "checkbox"
         this.fieldClass = "form-check-input ms-2"
       } else if (this.docField.field_type == "integer") {

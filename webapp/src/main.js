@@ -61,9 +61,9 @@ app.mixin({
                 vm.setStatusMessage("Error occurred when contacting the server.");
             }
         },
-        async getFormActions(form, status, onOk) {
+        async getDocTypeActions(doc_type_id, status, onOk) {
             let vm = this;
-            await vm.doGet(`my_form_actions/${form}/${status}`,
+            await vm.doGet(`my_form_actions/${doc_type_id}/${status}`,
                     onOk, vm.setStatusMessage)
         },
         isUserOrAdmin(userId) {

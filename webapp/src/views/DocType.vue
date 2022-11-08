@@ -16,6 +16,11 @@ Component for leave rules.
           <input type="text" required class="form-control" id="doc_name"
           v-model="doc_type.name" :disabled="viewOnly" />
         </div>
+        <div class="col-md-3">
+          <label for="grp">Group Name</label>
+          <input type="text" required class="form-control" id="grp"
+          v-model="doc_type.group" :disabled="viewOnly" />
+        </div>
         <div class="col">
           <label for="docdesc">Description</label>
           <input type="text" required class="form-control" id="docdesc"

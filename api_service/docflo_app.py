@@ -47,7 +47,7 @@ def _setup_routes():
     V.vbp.add_url_rule('/list_form_actions', view_func=V.all_form_actions, methods=['GET'])
     V.vbp.add_url_rule('/fa_save', view_func=V.save_form_action, methods=['POST'])
     V.vbp.add_url_rule('/fa_delete/<int:fa_id>', view_func=V.delete_form_action, methods=['GET'])
-    V.vbp.add_url_rule('/my_form_actions/<string:form_nm>/<string:status>', view_func=V.get_form_actions, methods=['GET'])
+    V.vbp.add_url_rule('/my_form_actions/<int:doc_type>/<string:status>', view_func=V.get_form_actions, methods=['GET'])
 
     V.vbp.add_url_rule('/all_doc_types', view_func=V.get_all_doc_types, methods=['GET'])
     V.vbp.add_url_rule('/doc_type/<int:my_id>', view_func=V.get_doc_type, methods=['GET'])
@@ -55,10 +55,13 @@ def _setup_routes():
     V.vbp.add_url_rule('/doc_type_save', view_func=V.save_doc_type, methods=['POST'])
     V.vbp.add_url_rule('/dtf_save', view_func=V.save_doc_field, methods=['POST'])
     V.vbp.add_url_rule('/dtf_delete/<int:my_id>', view_func=V.delete_doc_field, methods=['GET'])
-    V.vbp.add_url_rule('/dtf_get/<string:doc_type>', view_func=V.get_doc_type_fields, methods=['GET'])
+    V.vbp.add_url_rule('/dtf_get/<int:my_id>', view_func=V.get_doc_type_fields, methods=['GET'])
+    V.vbp.add_url_rule('/dtff_get/<int:my_id>', 
+        view_func=V.get_finder_fields_for_doc, methods=['GET'])
 
     V.vbp.add_url_rule('/doc_item_save', view_func=V.save_doc_item, methods=['POST'])
     V.vbp.add_url_rule('/doc_item_get/<int:my_id>', view_func=V.get_doc_item, methods=['GET'])
+    V.vbp.add_url_rule('/doc_item_search', view_func=V.find_doc_items, methods=['POST'])
 
 def create_app(cfg_file_path, is_testing=False):
     myapp = Flask(__name__, static_folder="./app", static_url_path="/docflo/")
