@@ -86,10 +86,14 @@ Component for searching doc items.
         <div v-else class="row row-striped mt-4" v-for="(r, i) in results.items" :key="r.id">
           <div class="col-md-1">{{ (results.pg_no - 1) * results.pg_size + i + 1 }}</div>
           <div class="col-md-2">
-            <a :href="'#/doc_type/' + r.id">{{r.name}}</a>
+            <a :href="'#/doc_item/' + r.doc_type.id + '/' + r.id">
+              {{r.doc_type.group}}/{{r.doc_type.name}}
+            </a>
           </div>
           <div class="col">
-            {{r.description}}
+            Status: {{labelFor(SD.WfStatuses, r.status)}}. 
+            Created by {{r.ins_by}} on {{fmtDate(r.ins_ts)}}.
+            Last updated on {{fmtDate(r.upd_ts)}}.
           </div>
         </div>
       </div>

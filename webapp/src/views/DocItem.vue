@@ -93,7 +93,7 @@ export default {
     vm.doc_item.doc_type = vm.docTypeId
     await vm.getDocTypeActions(vm.docTypeId, vm.doc_item.status,
                             (b)=>{vm.actions = b;})
-    await this.loadDocFields()
+    await vm.loadDocFields()
     if (vm.isEdit) await vm.load()
   },
   methods: {

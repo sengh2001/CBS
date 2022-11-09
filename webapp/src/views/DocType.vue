@@ -173,7 +173,7 @@ export default {
     async addDocField() {
       let dt = this.doc_type
       if (!this.hasFields) dt.doc_fields = []
-      dt.doc_fields.push({"doc_type_id": dt.id})
+      dt.doc_fields.push({"doc_type": dt.id})
     },
 
     async saveItem(obj) {

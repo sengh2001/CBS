@@ -7,6 +7,8 @@ __version__ = "0.1"
 __status__ = "Development"
 """
 
+from functools import reduce
+import operator
 import uuid
 from flask import request
 from werkzeug.utils import secure_filename
@@ -89,7 +91,7 @@ def get_form_actions(doc_type, status):
 def all_form_actions():
     try:
         qry = DocAction.select()
-        ser = [model_to_dict(x) for x in qry]
+        ser = [model_to_dict(x, recurse=False) for x in qry]
         return ok_json(ser)
     except Exception as ex:
         msg = log_error(ex, "Error when loading form actions.")
@@ -371,12 +373,37 @@ def find_doc_items():
             upd_by = User.get_by_id(updt).email
             dtq = dtq.where(DocItem.upd_by == upd_by)
 
+        dids = set()
         if note:
-            dnq = DocItemNote.select().where(DocItemNote.note.contains(note))
+            dnq = DocItemNote.select(DocItemNote.doc_item)
+            dnq = dnq.where(DocItemNote.note.contains(note))
             dnq = dnq.group_by(DocItemNote.doc_item)
             dnq = dnq.having(fn.Count(DocItemNote.id) > 0)
+            dids.update([x.doc_item.id for x in dnq] or [-1])
+        
+        dfq = DocItemFile.select(DocItemFile.doc_item)
+        dfq = dfq.group_by(DocItemFile.doc_item)
+        if fc_min != None:
+            dfq = dfq.having(fn.Count(DocItemFile.id) >= fc_min)
+        if fc_max != None:
+            dfq = dfq.having(fn.Count(DocItemFile.id) <= fc_max)
+        if fc_max != None or fc_min != None:
+            dids.update([x.doc_item.id for x in dfq] or [-1])
 
-        # TODO: add filters for remaining criteria
+        # Add filters for remaining criteria
+        dfvq = DocFieldValue.select(DocFieldValue.doc_item)
+        has_fv_crit = []
+        for (k, v) in fd.items():
+            if k.startswith("__DF"):
+                has_fv_crit.append(
+                    ((DocFieldValue.doc_field == int(k[4:])) &
+                    (DocFieldValue.field_val == v)))
+        if has_fv_crit:
+            dfvq = dfvq.where(reduce(operator.or_, has_fv_crit)).distinct()
+            dids.update([x.doc_item.id for x in dfvq])
+
+        if dids:
+            dtq = dtq.where(DocItem.id.in_(dids))
         data = dtq.order_by(-DocItem.id).paginate(pg_no, PAGE_SIZE)
         serialized = [model_to_dict(r) for r in data]
         has_next = len(data) >= PAGE_SIZE
