@@ -15,16 +15,23 @@ from werkzeug.utils import secure_filename
 from views_common import *
 
 
-def _check_doc_action(doc_item):
+def _check_doc_action(doc_type_id, status, ins_by):
     if is_user_in_role("SUP"):
         return # Superuser is allowed all actions
     
     cu = session_user()
     my_role, my_ou = cu["role"], cu["org_unit"]
-    daq = doc_item.doc_type.doc_actions
-    daq = daq.where(DocAction.status_now.in_([doc_item.status, "ANY"]))
+    uq=User.select().where(User.email == ins_by)
+    item_ou = None
+    if uq.exists():
+        item_ou = uq[0].org_unit
+    daq = DocAction.select().where(DocAction.doc_type == doc_type_id)
+    daq = daq.where(DocAction.status_now.in_([status, "ANY"]))
     daq = daq.where(DocAction.user_role.in_(["ANY", my_role]))
-    daq = daq.where(DocAction.allowed_ou.contains(my_ou))
+    daq = daq.where(
+        (DocAction.allowed_ou.in_(["*", my_ou])) |
+        ((DocAction.allowed_ou == ".") & (item_ou == my_ou))
+        )
     
     if not daq.exists():
         raise AppException("Change not allowed.")
@@ -263,8 +270,8 @@ def get_all_doc_types():
         return error_json(msg)
 
 
-def _fetch_doc_item(my_id):
-    di = DocItem.get_by_id(my_id)
+def _fetch_doc_item(item):
+    di = DocItem.get_by_id(item) if isinstance(item, int) else item
     df = [f.doc_file for f in di.doc_files]
     dn = []
     for n in di.doc_notes:
@@ -283,8 +290,10 @@ def _fetch_doc_item(my_id):
 @auth_check
 def get_doc_item(my_id):
     try:
-        di = _fetch_doc_item(my_id)
-        return ok_json(di)
+        di = DocItem.get_by_id(my_id)
+        _check_doc_action(di.doc_type.id, di.status, di.ins_by)
+        data = _fetch_doc_item(my_id)
+        return ok_json(data)
     except Exception as ex:
         msg = log_error(ex, "Error when fetching doc item.")
         return error_json(msg)
@@ -309,10 +318,12 @@ def save_doc_item():
         for file in dfl:
             file_path, fname = _save_uploaded_file(file, "DOCITEM")
             files_info.append((file_path, fname))
-        
+        cu = session_user()
         with db.transaction() as txn:
             di = DocItem.get_by_id(int(fd["id"])) if editing else DocItem()
             merge_json_to_model(di, fd)
+            dtid = fd["doc_type"]
+            _check_doc_action(dtid, di.status, di.ins_by if editing else cu["email"])
             rc = 0
             if editing:
                 rc = update_entity(DocItem, di)
@@ -322,7 +333,7 @@ def save_doc_item():
                 raise AppException("Failed to save doc item. Please retry later.")
 
             din = DocItemNote(doc_item=di.id, note=fd["action_note"])
-            din.author = session_user()["id"]
+            din.author = cu["id"]
             rc += save_entity(din)
 
             for fin in files_info:

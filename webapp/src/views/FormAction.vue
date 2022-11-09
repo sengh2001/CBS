@@ -21,7 +21,7 @@ Component for form actions.
             <div class="col">Status (Current)</div>
             <div class="col">Action</div>
             <div class="col">Status (After)</div>
-            <div class="col-md-3">Allowed OU</div>
+            <div class="col-md-3">Allowed for OU</div>
           </div>
           <div class="row mb-2" :class="{'border border-success': !pb.id}" v-for="(pb, i) in formActions" :key="pb.id">
             <div class="col-md-2">
