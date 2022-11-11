@@ -21,8 +21,8 @@ def _get_my_doc_item_ids():
 
     daq = DocItem.select().join(DocType).join(DocAction)
     daq = daq.where(DocAction.user_role.in_(["ANY", my_role]))
-    daq = daq.where((DocAction.status_now == "ANY") |
-                (DocAction.status_now == DocItem.status))
+    # daq = daq.where((DocAction.status_now == "ANY") |
+    #             (DocAction.status_now == DocItem.status))
     daq = daq.where(
         (DocAction.allowed_ou.in_(["*", my_ou])) |
         ((DocAction.allowed_ou == ".") &
@@ -33,7 +33,7 @@ def _get_my_doc_item_ids():
     return [x.id for x in daq]
 
 
-def _check_doc_action(doc_type_id, status, ins_by):
+def _check_doc_action(doc_type_id, ins_by, status=None):
     if is_user_in_role("SUP"):
         return # Superuser is allowed all actions
     
@@ -44,7 +44,8 @@ def _check_doc_action(doc_type_id, status, ins_by):
     if uq.exists():
         item_ou = uq[0].org_unit
     daq = DocAction.select().where(DocAction.doc_type == doc_type_id)
-    daq = daq.where(DocAction.status_now.in_([status, "ANY"]))
+    if status:
+        daq = daq.where(DocAction.status_now.in_([status, "ANY"]))
     daq = daq.where(DocAction.user_role.in_(["ANY", my_role]))
     daq = daq.where(
         (DocAction.allowed_ou.in_(["*", my_ou])) |
@@ -309,7 +310,7 @@ def _fetch_doc_item(item):
 def get_doc_item(my_id):
     try:
         di = DocItem.get_by_id(my_id)
-        _check_doc_action(di.doc_type.id, di.status, di.ins_by)
+        _check_doc_action(di.doc_type.id, di.ins_by)
         data = _fetch_doc_item(my_id)
         return ok_json(data)
     except Exception as ex:
@@ -338,9 +339,10 @@ def save_doc_item():
             files_info.append((file_path, fname))
         cu = session_user()
         di = DocItem.get_by_id(int(fd["id"])) if editing else DocItem()
+        status_now = di.status
         merge_json_to_model(di, fd)
         dtid = fd["doc_type"]
-        _check_doc_action(dtid, di.status, di.ins_by if editing else cu["email"])
+        _check_doc_action(dtid, di.ins_by if editing else cu["email"], status_now)
 
         with db.transaction() as txn:
             rc = 0
@@ -362,17 +364,25 @@ def save_doc_item():
             if rc != len(files_info) + 2:
                 raise AppException("Failed to save some items. Please retry later.")
 
-            # Delete all field values for the item
-            delq = DocFieldValue.delete()
-            delq.where(DocFieldValue.doc_item == di.id).execute()
+            DFV = DocFieldValue
+            dfvq = DFV.select(DFV.doc_field).where(DFV.doc_item == di.id)
+            df_ids = [x.doc_field.id for x in dfvq]
 
             # Now add the new values
             for (k, v) in fd.items():
                 if k.startswith("__DF"):
-                    dfv = DocFieldValue(doc_item=di.id)
-                    dfv.doc_field=int(k[4:])
-                    dfv.field_val = v
-                    rc = save_entity(dfv)
+                    if int(k[4:]) in df_ids:
+                        q1 = DFV.select().where(DFV.doc_item == di.id)
+                        q1 = q1.where(DFV.doc_field == int(k[4:]))
+                        dfv = q1[0]
+                        dfv.field_val = v
+                        rc = update_entity(DocFieldValue, dfv)
+                    else:
+                        dfv = DocFieldValue(doc_item=di.id)
+                        dfv.doc_field=int(k[4:])
+                        dfv.field_val = v
+                        rc = save_entity(dfv)
+                    
                     if rc == 0:
                         raise AppException("Failed to save field value!")
 
@@ -403,13 +413,13 @@ def find_doc_items():
             upd_by = User.get_by_id(updt).email
             dtq = dtq.where(DocItem.upd_by == upd_by)
 
-        dids = set()
+        doc_item_ids = set()
         if note:
             dnq = DocItemNote.select(DocItemNote.doc_item)
             dnq = dnq.where(DocItemNote.note.contains(note))
             dnq = dnq.group_by(DocItemNote.doc_item)
             dnq = dnq.having(fn.Count(DocItemNote.id) > 0)
-            dids.update([x.doc_item.id for x in dnq] or [-1])
+            doc_item_ids.update([x.doc_item.id for x in dnq] or [-1])
         
         dfq = DocItemFile.select(DocItemFile.doc_item)
         dfq = dfq.group_by(DocItemFile.doc_item)
@@ -418,7 +428,7 @@ def find_doc_items():
         if fc_max != None:
             dfq = dfq.having(fn.Count(DocItemFile.id) <= fc_max)
         if fc_max != None or fc_min != None:
-            dids.update([x.doc_item.id for x in dfq] or [-1])
+            doc_item_ids.update([x.doc_item.id for x in dfq] or [-1])
 
         # Add filters for remaining criteria
         dfvq = DocFieldValue.select(DocFieldValue.doc_item)
@@ -430,17 +440,16 @@ def find_doc_items():
                     (DocFieldValue.field_val == v)))
         if has_fv_crit:
             dfvq = dfvq.where(reduce(operator.or_, has_fv_crit)).distinct()
-            dids.update([x.doc_item.id for x in dfvq])
-
+            doc_item_ids.update([x.doc_item.id for x in dfvq] or [-1])
+                
         # Include only those items that are allowed for this user
-        my_items = _get_my_doc_item_ids()
-        dids.intersection_update(set(my_items))
-
-        if dids:
-            dtq = dtq.where(DocItem.id.in_(dids))
+        my_items = set(_get_my_doc_item_ids())
+        if doc_item_ids:
+            doc_item_ids.intersection_update(my_items)
         else:
-            dtq = dtq.where(1 != 1) # No results to be shown
-        
+            doc_item_ids = my_items
+
+        dtq = dtq.where(DocItem.id.in_(doc_item_ids))
         data = dtq.order_by(-DocItem.id).paginate(pg_no, PAGE_SIZE)
         serialized = [model_to_dict(r) for r in data]
         has_next = len(data) >= PAGE_SIZE
