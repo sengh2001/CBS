@@ -15,6 +15,24 @@ from werkzeug.utils import secure_filename
 from views_common import *
 
 
+def _get_my_doc_item_ids():
+    cu = session_user()
+    my_role, my_ou = cu["role"], cu["org_unit"]
+
+    daq = DocItem.select().join(DocType).join(DocAction)
+    daq = daq.where(DocAction.user_role.in_(["ANY", my_role]))
+    daq = daq.where((DocAction.status_now == "ANY") |
+                (DocAction.status_now == DocItem.status))
+    daq = daq.where(
+        (DocAction.allowed_ou.in_(["*", my_ou])) |
+        ((DocAction.allowed_ou == ".") &
+         (my_ou == (User.select(User.org_unit).where(User.email == DocItem.ins_by)))
+        )
+        )
+    
+    return [x.id for x in daq]
+
+
 def _check_doc_action(doc_type_id, status, ins_by):
     if is_user_in_role("SUP"):
         return # Superuser is allowed all actions
@@ -319,11 +337,12 @@ def save_doc_item():
             file_path, fname = _save_uploaded_file(file, "DOCITEM")
             files_info.append((file_path, fname))
         cu = session_user()
+        di = DocItem.get_by_id(int(fd["id"])) if editing else DocItem()
+        merge_json_to_model(di, fd)
+        dtid = fd["doc_type"]
+        _check_doc_action(dtid, di.status, di.ins_by if editing else cu["email"])
+
         with db.transaction() as txn:
-            di = DocItem.get_by_id(int(fd["id"])) if editing else DocItem()
-            merge_json_to_model(di, fd)
-            dtid = fd["doc_type"]
-            _check_doc_action(dtid, di.status, di.ins_by if editing else cu["email"])
             rc = 0
             if editing:
                 rc = update_entity(DocItem, di)
@@ -413,8 +432,15 @@ def find_doc_items():
             dfvq = dfvq.where(reduce(operator.or_, has_fv_crit)).distinct()
             dids.update([x.doc_item.id for x in dfvq])
 
+        # Include only those items that are allowed for this user
+        my_items = _get_my_doc_item_ids()
+        dids.intersection_update(set(my_items))
+
         if dids:
             dtq = dtq.where(DocItem.id.in_(dids))
+        else:
+            dtq = dtq.where(1 != 1) # No results to be shown
+        
         data = dtq.order_by(-DocItem.id).paginate(pg_no, PAGE_SIZE)
         serialized = [model_to_dict(r) for r in data]
         has_next = len(data) >= PAGE_SIZE
