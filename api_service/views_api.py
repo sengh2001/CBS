@@ -105,8 +105,10 @@ def get_form_actions(doc_type, status):
         qry = DocAction.select()
         qry = qry.where(DocAction.doc_type == doc_type)
         qry = qry.where(DocAction.status_now.in_([status, "ANY"]))
-        qry = qry.where(DocAction.user_role.in_([current_role(), "ANY"])).distinct()
-        ser = [{"arg": x.status_after, "label": x.action} for x in qry]
+        if not is_user_in_role("SUP"):
+            qry = qry.where(DocAction.user_role.in_([current_role(), "ANY"]))
+        ser = [{"arg": x.status_after, "label": x.action} 
+                for x in qry.distinct()]
         return ok_json(ser)
     except Exception as ex:
         msg = log_error(ex, "Error when loading form actions for this user.")
@@ -281,8 +283,13 @@ def get_doc_type(my_id):
 def get_all_doc_types():
     try:
         dt = DocType.select()
-        data = [{"id": x.id, "value": "{0}/{1}".format(x.group, x.name)}
-                for x in dt]
+        data = {}
+        for x in dt:
+            if x.group not in data:
+                data[x.group] = []
+            grp_items = data.get(x.group)
+            grp_items.append({"id": x.id, "value": x.name})
+        
         return ok_json(data)
     except Exception as ex:
         msg = log_error(ex, "Error when fetching doc types.")
@@ -386,7 +393,7 @@ def save_doc_item():
                     if rc == 0:
                         raise AppException("Failed to save field value!")
 
-        res = _fetch_doc_item(di.id)
+        res = _fetch_doc_item(int(di.id))
         return ok_json(res)
     except Exception as ex:
         msg = log_error(ex, "Error when saving doc item.")
@@ -402,7 +409,9 @@ def find_doc_items():
         crtr, updt = int(fd.get("creator", 0)), int(fd.get("updater", 0))
         pg_no = int(fd.get('pg_no', 1))
         
-        dtq = DocItem.select().join(DocType)
+        dtq = DocItem.select(DocItem, User) \
+            .join(User, on=(User.email == DocItem.ins_by), attr='INSBY') \
+            .switch(DocItem).join(DocType)
         dtq = dtq.where(DocType.id == dt_id)
         if status:
             dtq = dtq.where(DocItem.status == status)
@@ -413,13 +422,13 @@ def find_doc_items():
             upd_by = User.get_by_id(updt).email
             dtq = dtq.where(DocItem.upd_by == upd_by)
 
-        doc_item_ids = set()
+        filtered_ids = set()
         if note:
             dnq = DocItemNote.select(DocItemNote.doc_item)
             dnq = dnq.where(DocItemNote.note.contains(note))
             dnq = dnq.group_by(DocItemNote.doc_item)
             dnq = dnq.having(fn.Count(DocItemNote.id) > 0)
-            doc_item_ids.update([x.doc_item.id for x in dnq] or [-1])
+            filtered_ids.update([x.doc_item.id for x in dnq] or [-1])
         
         dfq = DocItemFile.select(DocItemFile.doc_item)
         dfq = dfq.group_by(DocItemFile.doc_item)
@@ -428,7 +437,7 @@ def find_doc_items():
         if fc_max != None:
             dfq = dfq.having(fn.Count(DocItemFile.id) <= fc_max)
         if fc_max != None or fc_min != None:
-            doc_item_ids.update([x.doc_item.id for x in dfq] or [-1])
+            filtered_ids.update([x.doc_item.id for x in dfq] or [-1])
 
         # Add filters for remaining criteria
         dfvq = DocFieldValue.select(DocFieldValue.doc_item)
@@ -440,16 +449,19 @@ def find_doc_items():
                     (DocFieldValue.field_val == v)))
         if has_fv_crit:
             dfvq = dfvq.where(reduce(operator.or_, has_fv_crit)).distinct()
-            doc_item_ids.update([x.doc_item.id for x in dfvq] or [-1])
-                
-        # Include only those items that are allowed for this user
-        my_items = set(_get_my_doc_item_ids())
-        if doc_item_ids:
-            doc_item_ids.intersection_update(my_items)
-        else:
-            doc_item_ids = my_items
-
-        dtq = dtq.where(DocItem.id.in_(doc_item_ids))
+            filtered_ids.update([x.doc_item.id for x in dfvq] or [-1])
+        
+        if not is_user_in_role("SUP"):
+            # Include only those items that are allowed for this user
+            my_items = set(_get_my_doc_item_ids())
+            if filtered_ids:
+                filtered_ids.intersection_update(my_items)
+            else:
+                filtered_ids = my_items
+            dtq = dtq.where(DocItem.id.in_(filtered_ids))
+        elif filtered_ids:
+            dtq = dtq.where(DocItem.id.in_(filtered_ids))
+        
         data = dtq.order_by(-DocItem.id).paginate(pg_no, PAGE_SIZE)
         serialized = [model_to_dict(r) for r in data]
         has_next = len(data) >= PAGE_SIZE

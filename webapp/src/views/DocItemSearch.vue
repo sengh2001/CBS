@@ -10,9 +10,14 @@ Component for searching doc items.
       <div class="col-md-10">
         <div class="input-group float-end">
           <span class="input-group-text">Doc Type:</span>
-          <select class="form-select" v-model="crit.doc_type" 
-            @change="fetchFinderFields">
-            <option v-for="x in allDocTypes" v-bind:value="x.id" :key="x.id">
+          <select class="form-select" v-model="doc_type_grp">
+            <option v-for="x in Object.keys(allDocTypes)" v-bind:value="x" :key="x">
+              {{ x }}
+            </option>
+          </select>
+          <select class="form-select" :disabled="doc_type_grp==undefined"
+            v-model="crit.doc_type" @change="fetchFinderFields">
+            <option v-for="x in allDocTypes[doc_type_grp]" v-bind:value="x.id" :key="x.id">
               {{ x.value }}
             </option>
           </select>
@@ -111,7 +116,8 @@ export default {
   },
   data: function () {
     return {
-      allDocTypes: [],
+      doc_type_grp: undefined,
+      allDocTypes: {},
       critFields: [],
       crit: { pg_no: 1 },
       results: { items: [], has_next: false }

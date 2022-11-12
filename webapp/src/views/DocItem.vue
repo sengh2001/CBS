@@ -56,7 +56,7 @@ Component for searching doc types.
             <div class="col-md-1">{{i+1}}</div>
             <div class="col-md-2">
               {{n.author.first_name + " " + n.author.last_name +
-              " (" + n.author.email+")"}}</div>
+              " (" + n.author.email+") " + n.author.org_unit}}</div>
             <div class="col-md-2">{{fmtDate(n.ins_ts)}}</div>
             <div class="col">{{n.note}}</div>
           </div>
@@ -91,10 +91,10 @@ export default {
     console.log("Creating DocItem");
     const vm=this;
     vm.doc_item.doc_type = vm.docTypeId
-    await vm.getDocTypeActions(vm.docTypeId, vm.doc_item.status,
-                            (b)=>{vm.actions = b;})
     await vm.loadDocFields()
     if (vm.isEdit) await vm.load()
+    await vm.getDocTypeActions(vm.docTypeId, vm.doc_item.status,
+                            (b)=>{vm.actions = b;})
   },
   methods: {
     addFileToPayload(payload, elm, propName) {

@@ -55,7 +55,7 @@ Component for the application's navigation bar.
           <span class="navbar-text me-2" style="font-size: small">
             {{user.first_name}}&nbsp;{{user.last_name}}
             ({{labelFor(SD.UserRoles, user.role)}},
-            {{labelFor(SD.WorkAreas, user.area)}})
+            {{user.org_unit}})
           </span>
           <button class="btn btn-outline-danger" type="button" @click="logout" title="Logout">
             <i class="bi bi-power"></i>
