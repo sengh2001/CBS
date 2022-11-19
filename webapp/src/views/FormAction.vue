@@ -97,7 +97,7 @@ export default {
     await vm.doGet("list_form_actions", b => { vm.formActions = b },
             vm.setStatusMessage)
     
-    await vm.doGet("all_doc_types", b => { vm.allDocTypes = b },
+    await vm.doGet("all_doc_types/1", b => { vm.allDocTypes = b },
             vm.setStatusMessage)
   },
   methods: {

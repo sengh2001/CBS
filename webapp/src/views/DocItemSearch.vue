@@ -134,7 +134,7 @@ export default {
   async mounted () {
     console.log("Mounting DocItemSearch");
     const vm = this
-    await vm.doGet("all_doc_types", b => { vm.allDocTypes = b },
+    await vm.doGet("all_doc_types/0", b => { vm.allDocTypes = b },
             vm.setStatusMessage)
     if (sessionStorage.ditSrch) {
       vm.crit = JSON.parse(sessionStorage.ditSrch);

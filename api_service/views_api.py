@@ -280,15 +280,19 @@ def get_doc_type(my_id):
 
 
 @auth_check
-def get_all_doc_types():
+def get_all_doc_types(flatten=0):
     try:
         dt = DocType.select()
-        data = {}
+        data = [] if flatten else {}
         for x in dt:
-            if x.group not in data:
-                data[x.group] = []
-            grp_items = data.get(x.group)
-            grp_items.append({"id": x.id, "value": x.name})
+            if flatten:
+                val = "{0} / {1}".format(x.group, x.name)
+                data.append({"id": x.id, "value": val})
+            else:
+                if x.group not in data:
+                    data[x.group] = []
+                grp_items = data.get(x.group)
+                grp_items.append({"id": x.id, "value": x.name})
         
         return ok_json(data)
     except Exception as ex:

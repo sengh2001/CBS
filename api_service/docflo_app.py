@@ -49,7 +49,7 @@ def _setup_routes():
     V.vbp.add_url_rule('/fa_delete/<int:fa_id>', view_func=V.delete_form_action, methods=['GET'])
     V.vbp.add_url_rule('/my_form_actions/<int:doc_type>/<string:status>', view_func=V.get_form_actions, methods=['GET'])
 
-    V.vbp.add_url_rule('/all_doc_types', view_func=V.get_all_doc_types, methods=['GET'])
+    V.vbp.add_url_rule('/all_doc_types/<int:flatten>', view_func=V.get_all_doc_types, methods=['GET'])
     V.vbp.add_url_rule('/doc_type/<int:my_id>', view_func=V.get_doc_type, methods=['GET'])
     V.vbp.add_url_rule('/doc_type_search', view_func=V.find_doc_type, methods=['POST'])
     V.vbp.add_url_rule('/doc_type_save', view_func=V.save_doc_type, methods=['POST'])
