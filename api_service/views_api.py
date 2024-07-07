@@ -13,6 +13,8 @@ import uuid
 from flask import request
 from werkzeug.utils import secure_filename
 from views_common import *
+    
+from collections import defaultdict
 
 
 def _get_my_doc_item_ids():
@@ -505,41 +507,6 @@ def get_doctypes_by_group(group):
         msg = log_error(ex, "Error when searching doc items.")
         return error_json(msg)
 
-
-def xget_docitems_by_user(user_email):
-    try:
-        docitems = (DocItem
-                    .select(DocItem, DocType.name.alias('doc_type_name'), DocType.description.alias('doc_type_description'))
-                    .join(DocType, on=(DocItem.doc_type == DocType.id))
-                    .where((DocItem.is_deleted == False) & (DocItem.ins_by == user_email))
-                    .dicts())  # Return results as dictionaries
-        return jsonify({'docitems': list(docitems)})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
- 
-
-def yget_docitems_by_user(user_email):
-    try:
-        docitems = (DocItem
-                    .select(
-                        DocItem, 
-                        DocType.name.alias('doc_type_name'), 
-                        DocType.description.alias('doc_type_description'),
-                        DocFieldValue.field_val.alias('field_value'), 
-                        DocField.name.alias('field_name')
-                    )
-                    .join(DocType, on=(DocItem.doc_type == DocType.id))
-                    .join(DocFieldValue, JOIN.LEFT_OUTER, on=(DocItem.id == DocFieldValue.doc_item))
-                    .join(DocField, JOIN.LEFT_OUTER, on=(DocFieldValue.doc_field == DocField.id))
-                    .where((DocItem.is_deleted == False) & (DocItem.ins_by == user_email))
-                    .dicts())  # Return results as dictionaries
-
-        return jsonify({'docitems': list(docitems)})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-    
-from flask import jsonify
-from collections import defaultdict
 
 def get_docitems_by_user(user_email):
     try:
