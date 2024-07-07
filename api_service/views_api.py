@@ -475,3 +475,123 @@ def find_doc_items():
     except Exception as ex:
         msg = log_error(ex, "Error when searching doc items.")
         return error_json(msg)
+
+
+def get_group_type():
+    # Query the DocType table to get all records
+    doc_types = DocType.select(DocType.name, DocType.group)
+
+    # Create a list of dictionaries to store the results
+    result = []
+    for doc_type in doc_types:
+        result.append({
+            "name": doc_type.name,
+            "group": doc_type.group
+        })
+
+    # Return the result as JSON
+    return jsonify(result)
+    
+
+def get_doctypes_by_group(group):
+    try:
+        # Query the database for the specified group
+        query = DocType.select(DocType.name, DocType.group).where(DocType.group == group)
+        
+        # Prepare the results to return as JSON
+        results = [{'name': doc.name, 'group': doc.group} for doc in query]
+        return ok_json(results)
+    except Exception as ex:
+        msg = log_error(ex, "Error when searching doc items.")
+        return error_json(msg)
+
+
+def xget_docitems_by_user(user_email):
+    try:
+        docitems = (DocItem
+                    .select(DocItem, DocType.name.alias('doc_type_name'), DocType.description.alias('doc_type_description'))
+                    .join(DocType, on=(DocItem.doc_type == DocType.id))
+                    .where((DocItem.is_deleted == False) & (DocItem.ins_by == user_email))
+                    .dicts())  # Return results as dictionaries
+        return jsonify({'docitems': list(docitems)})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+ 
+
+def yget_docitems_by_user(user_email):
+    try:
+        docitems = (DocItem
+                    .select(
+                        DocItem, 
+                        DocType.name.alias('doc_type_name'), 
+                        DocType.description.alias('doc_type_description'),
+                        DocFieldValue.field_val.alias('field_value'), 
+                        DocField.name.alias('field_name')
+                    )
+                    .join(DocType, on=(DocItem.doc_type == DocType.id))
+                    .join(DocFieldValue, JOIN.LEFT_OUTER, on=(DocItem.id == DocFieldValue.doc_item))
+                    .join(DocField, JOIN.LEFT_OUTER, on=(DocFieldValue.doc_field == DocField.id))
+                    .where((DocItem.is_deleted == False) & (DocItem.ins_by == user_email))
+                    .dicts())  # Return results as dictionaries
+
+        return jsonify({'docitems': list(docitems)})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+from flask import jsonify
+from collections import defaultdict
+
+def get_docitems_by_user(user_email):
+    try:
+        docitems = (DocItem
+                    .select(
+                        DocItem,
+                        DocType.name.alias('doc_type_name'),
+                        DocType.description.alias('doc_type_description'),
+                        DocFieldValue.field_val.alias('field_value'),
+                        DocField.name.alias('field_name')
+                    )
+                    .join(DocType, on=(DocItem.doc_type == DocType.id))
+                    .join(DocFieldValue, JOIN.LEFT_OUTER, on=(DocItem.id == DocFieldValue.doc_item))
+                    .join(DocField, JOIN.LEFT_OUTER, on=(DocFieldValue.doc_field == DocField.id))
+                    .where((DocItem.is_deleted == False) & (DocItem.ins_by == user_email))
+                    .dicts())  # Return results as dictionaries
+
+        # Group docitems by id
+        docitems_by_id = defaultdict(lambda: {
+            "id": None,
+            "doc_type": None,
+            "doc_type_name": None,
+            "doc_type_description": None,
+            "status": None,
+            "txn_no": None,
+            "ins_by": None,
+            "ins_ts": None,
+            "upd_by": None,
+            "upd_ts": None,
+            "is_deleted": None,
+            "fields": []
+        })
+
+        for item in docitems:
+            item_id = item["id"]
+            docitems_by_id[item_id]["id"] = item_id
+            docitems_by_id[item_id]["doc_type"] = item["doc_type"]
+            docitems_by_id[item_id]["doc_type_name"] = item["doc_type_name"]
+            docitems_by_id[item_id]["doc_type_description"] = item["doc_type_description"]
+            docitems_by_id[item_id]["status"] = item["status"]
+            docitems_by_id[item_id]["txn_no"] = item["txn_no"]
+            docitems_by_id[item_id]["ins_by"] = item["ins_by"]
+            docitems_by_id[item_id]["ins_ts"] = item["ins_ts"]
+            docitems_by_id[item_id]["upd_by"] = item["upd_by"]
+            docitems_by_id[item_id]["upd_ts"] = item["upd_ts"]
+            docitems_by_id[item_id]["is_deleted"] = item["is_deleted"]
+            docitems_by_id[item_id]["fields"].append({
+                "field_name": item["field_name"],
+                "field_value": item["field_value"]
+            })
+
+        return jsonify({'docitems': list(docitems_by_id.values())})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+

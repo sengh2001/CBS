@@ -17,7 +17,7 @@ from functools import wraps
 
 from flask import current_app as app
 from flask import (jsonify, session, render_template)
-from flask.json import JSONEncoder
+from json import JSONEncoder
 
 from playhouse.shortcuts import *
 

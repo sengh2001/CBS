@@ -1,8 +1,3 @@
-<!--
-Component for leave rules.
-
-@author Balwinder Sodhi
--->
 <template>
   <div class="card">
     <div class="card-header">
@@ -13,18 +8,16 @@ Component for leave rules.
       <div class="row mb-2">
         <div class="col-md-3">
           <label for="doc_name">Name</label>
-          <input type="text" required class="form-control" id="doc_name"
-          v-model="doc_type.name" :disabled="viewOnly" />
+          <input type="text" required class="form-control" id="doc_name" v-model="doc_type.name" :disabled="viewOnly" />
         </div>
         <div class="col-md-3">
           <label for="grp">Group Name</label>
-          <input type="text" required class="form-control" id="grp"
-          v-model="doc_type.group" :disabled="viewOnly" />
+          <input type="text" required class="form-control" id="grp" v-model="doc_type.group" :disabled="viewOnly" />
         </div>
         <div class="col">
           <label for="docdesc">Description</label>
-          <input type="text" required class="form-control" id="docdesc"
-          v-model="doc_type.description" :disabled="viewOnly" />
+          <input type="text" required class="form-control" id="docdesc" v-model="doc_type.description"
+            :disabled="viewOnly" />
         </div>
         <div class="col-md-2">
           <span class="float-end mt-4" v-if="!viewOnly">
@@ -52,10 +45,10 @@ Component for leave rules.
           <div class="col-md-1">Display Seq.</div>
           <div class="col">Label</div>
         </div>
-        <div class="row mb-2" :class="{'border border-success': !pb.id}"
-          v-for="(pb, i) in doc_type.doc_fields" :key="pb.id">
+        <div class="row mb-2" :class="{ 'border border-success': !pb.id }" v-for="(pb, i) in doc_type.doc_fields"
+          :key="pb.id">
           <div class="col-md-1">
-            <span class="fw-bold me-2">{{i+1}}.</span>
+            <span class="fw-bold me-2">{{ i + 1 }}.</span>
           </div>
           <div class="col-md-2">
             <div class="input-group">
@@ -63,12 +56,21 @@ Component for leave rules.
             </div>
           </div>
           <div class="col-md-2">
-            <select class="form-select" v-model="pb.field_type ">
+            <select class="form-select" style="width: 100%;" v-model="pb.field_type">
               <option v-for="x in SD.DocFieldTypes" v-bind:value="x.id" :key="x.id">
                 {{ x.value }}
               </option>
             </select>
+
+            <div class="col-md-2" v-if="pb.field_type === 'docref'">
+              <select class="form-select" style="width: 280px;" v-model="pb.doc_group_type">
+                <option v-for="(groupType, index) in groupTypes" :key="index" :value="groupType">
+                  {{ groupType.group }} / {{ groupType.name }}
+                </option>
+              </select>
+            </div>
           </div>
+
           <div class="col-md-1">
             <div class="form-check form-check-inline">
               <input class="form-check-input" type="checkbox" v-model="pb.optional">
@@ -85,133 +87,125 @@ Component for leave rules.
           <div class="col">
             <div class="input-group">
               <input class="form-control" type="text" v-model="pb.label" />
-              <button title="Save this item" class="btn btn-sm btn-outline-primary me-2" @click="saveItem(pb)"><i class="bi bi-save" role="button"></i></button>
-              <button title="Copy this item as new row" class="btn btn-sm btn-outline-success me-2" @click="copyItem(pb)"><i class="bi bi-clipboard-plus" role="button"></i></button>
-              <button title="Delete this item" class="btn btn-sm btn-outline-danger" @click="removeItem(pb)"><i class="bi bi-trash-fill"></i></button>
+              <button title="Save this item" class="btn btn-sm btn-outline-primary me-2" @click="saveItem(pb)"><i
+                  class="bi bi-save" role="button"></i></button>
+              <button title="Copy this item as new row" class="btn btn-sm btn-outline-success me-2"
+                @click="copyItem(pb)"><i class="bi bi-clipboard-plus" role="button"></i></button>
+              <button title="Delete this item" class="btn btn-sm btn-outline-danger" @click="removeItem(pb)"><i
+                  class="bi bi-trash-fill"></i></button>
             </div>
           </div>
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
 <script>
-import _ from "lodash"
+import _ from "lodash";
+import axios from "axios";
 
 export default {
   name: "DocType",
-  components: {},
-  data: function () {
-    return { doc_type: { doc_fields: []} }
+  data() {
+    return {
+      doc_type: { doc_fields: [] },
+      selectedGroupType: null,
+      groupTypes: []
+    };
   },
   async mounted() {
-    console.log("Mounting Doc Type");
-    let vm = this;
-    try {
-      if (vm.isEdit) {
-        await vm.load();
-      } else {
-        vm.reset();
-      }
-      if (vm.$route.query["nr"] == 1) {
-        vm.setStatusMessage("Saved the doc type!");
-        vm.$route.query = {};
-      }
-    } catch (error) {
-      vm.setStatusMessage(error)
+    this.fetchGroupTypes();
+    if (this.isEdit) {
+      await this.load();
+    } else {
+      this.reset();
+    }
+    if (this.$route.query["nr"] == 1) {
+      this.setStatusMessage("Saved the doc type!");
+      this.$route.query = {};
     }
   },
   computed: {
     isEdit() {
-      console.log("isEdit() called");
       return this.$route.params.id > 0;
     },
     hasFields() {
-      return this.doc_type !== undefined && 
-      this.doc_type.doc_fields !== undefined &&
-      this.doc_type.doc_fields.length > 0
-    }
+      return (
+        this.doc_type !== undefined &&
+        this.doc_type.doc_fields !== undefined &&
+        this.doc_type.doc_fields.length > 0
+      );
+    },
   },
   methods: {
     async reset() {
-      this.doc_type = {doc_fields: []}
+      this.doc_type = { doc_fields: [] };
     },
-
     async load() {
-      let vm = this;
-      let uid = vm.$route.params.id;
-      let error = false
-      console.log("Loading doc type. id=" + uid);
-      await vm.doGet(`doc_type/${uid}`, (b) => { vm.doc_type = b; },
-        (b)=> {error = b})
-      if (error) throw error
+      let uid = this.$route.params.id;
+      await this.doGet(`doc_type/${uid}`, (b) => {
+        this.doc_type = b;
+      });
     },
     isValid() {
-      return !(_.isEmpty(this.doc_type.name));
+      return !_.isEmpty(this.doc_type.name);
     },
     async saveDocType() {
-      let vm = this;
       if (!this.isValid()) {
-        vm.setStatusMessage("Please supply all required fields!");
+        this.setStatusMessage("Please supply all required fields!");
         return;
       }
       if (!confirm("Confirm save?")) {
         return;
       }
-      console.log("Saving doc type details.");
-      await vm.doPost("doc_type_save", vm.doc_type,
-        (b) => {
-          vm.doc_type = b;
-          vm.setStatusMessage("Saved successfully!");
-          if (!vm.isEdit) {
-            vm.$router.push({ path: "/doc_type/" + vm.doc_type.id, query: { nr: 1 } });
-          }
-        }, vm.setStatusMessage);
+      await this.doPost("doc_type_save", this.doc_type, (b) => {
+        this.doc_type = b;
+        this.setStatusMessage("Saved successfully!");
+        if (!this.isEdit) {
+          this.$router.push({ path: "/doc_type/" + this.doc_type.id, query: { nr: 1 } });
+        }
+      }, this.setStatusMessage);
     },
-
     async addDocField() {
-      let dt = this.doc_type
-      if (!this.hasFields) dt.doc_fields = []
-      dt.doc_fields.push({"doc_type": dt.id})
+      let dt = this.doc_type;
+      if (!this.hasFields) dt.doc_fields = [];
+      dt.doc_fields.push({ "doc_type_id": dt.id, "doc_group_type": null }); // Ensure doc_type_id and doc_group_type are included
     },
-
     async saveItem(obj) {
-      let vm = this;
       if (!confirm("Confirm save?")) {
         return;
       }
-      console.log("Saving doc type field.");
-      await vm.doPost("dtf_save", obj,
-        (b) => {
-          Object.assign(obj, b)
-          vm.setStatusMessage("Saved successfully!");
-        }, vm.setStatusMessage);
+      await this.doPost("dtf_save", obj, (b) => {
+        Object.assign(obj, b);
+        this.setStatusMessage("Saved successfully!");
+      }, this.setStatusMessage);
     },
-
     async copyItem(obj) {
-      let cp = {}
-      Object.assign(cp, obj)
-      cp.id = undefined
-      this.doc_type.doc_fields.push(cp)
+      let cp = {};
+      Object.assign(cp, obj);
+      cp.id = undefined;
+      this.doc_type.doc_fields.push(cp);
     },
-
     async removeItem(obj) {
-      if (!confirm("Confirm delete?")) return
-      const vm = this;
-      let df = vm.doc_type.doc_fields;
-      vm.doc_type.doc_fields = df.filter(function(item) {
-          return item.id !== obj.id
-      });
+      if (!confirm("Confirm delete?")) return;
+      this.doc_type.doc_fields = this.doc_type.doc_fields.filter((item) => item.id !== obj.id);
       if (obj.id !== undefined) {
-        await vm.doGet("dtf_delete/"+obj.id, 
-          (b)=>{
-            vm.setStatusMessage(b);
-          }
-          , vm.setStatusMessage)
-      }     
-    }
-
-  },
+        await this.doGet("dtf_delete/" + obj.id, (b) => {
+          this.setStatusMessage(b);
+        }, this.setStatusMessage);
+      }
+    },
+    async fetchGroupTypes() {
+      try {
+        const response = await axios.get('get_group_type');
+        console.log('Group Types Response:', response.data); // Log the response data
+        this.groupTypes = response.data; // Set groupTypes to the response data
+      } catch (error) {
+        console.error('Error fetching group types:', error);
+      }
+    },
+  }
 };
 </script>

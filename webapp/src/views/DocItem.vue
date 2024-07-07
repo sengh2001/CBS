@@ -145,7 +145,7 @@ export default {
     async load() {
       let vm = this;
       console.log("Loading doc item details. id=" + vm.id);
-      await vm.doGet(`doc_item_get/${vm.id}`, (b) => { vm.doc_item = b; },
+      await vm.doGet(`doc_item_get/${vm.id}`, (b) => { vm.doc_item = b; console.log('Incoming data:', b); },
         vm.setStatusMessage)
     },
     async loadDocFields() {

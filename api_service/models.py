@@ -10,10 +10,11 @@ __status__ = "Development"
 import logging
 
 from peewee import *
-from playhouse.mysql_ext import JSONField
 
-# Deferred initialization
-db = MySQLDatabase(None)
+from playhouse.postgres_ext import PostgresqlExtDatabase, JSONField
+
+db = PostgresqlExtDatabase('docflo', user='postgres') # Deferred initialization
+
     
 class MediumTextField(TextField):
     field_type = "MEDIUMTEXT"
@@ -109,6 +110,7 @@ class DocField(BaseModel):
     name = CharField(max_length=60, index=True)
     # float, integer, string, date, boolean
     field_type = CharField(max_length=60)
+    doc_group_type = CharField(max_length=60, null=True) #optional field for refernce 
     optional = BooleanField(constraints=[SQL('DEFAULT FALSE')])
     finder = BooleanField(constraints=[SQL('DEFAULT FALSE')])
     display_seq = SmallIntegerField(default=0)

@@ -28,6 +28,7 @@
         {"id": "integer", "value": "Integer Value"},
         {"id": "float", "value": "Float Value"},
         {"id": "boolean", "value": "Boolean Value"},
-        {"id": "date", "value": "Date Time"}
+        {"id": "date", "value": "Date Time"},
+        {"id": "docref", "value": "Doc Reference"}
     ]
 }

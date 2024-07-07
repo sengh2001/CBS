@@ -63,6 +63,12 @@ def _setup_routes():
     V.vbp.add_url_rule('/doc_item_get/<int:my_id>', view_func=V.get_doc_item, methods=['GET'])
     V.vbp.add_url_rule('/doc_item_search', view_func=V.find_doc_items, methods=['POST'])
 
+    '''---------------------New Routes here---------------------------------- '''
+
+    V.vbp.add_url_rule('/get_group_type',view_func =V.get_group_type, methods=['GET'])
+    V.vbp.add_url_rule('/ebs/get_doc_group_types/<string:group>',view_func =V.get_doctypes_by_group, methods=['GET'])
+    V.vbp.add_url_rule('/ebs/docitems_by_user/<string:user_email>',view_func =V.get_docitems_by_user, methods=['GET'])
+    
 def create_app(cfg_file_path, is_testing=False):
     myapp = Flask(__name__, static_folder="./app", static_url_path="/docflo/")
     myapp.secret_key = C.random_str(size=30)
