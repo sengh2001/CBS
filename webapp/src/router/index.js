@@ -8,6 +8,7 @@ import DocType from "../views/DocType.vue"
 import DocItem from "../views/DocItem.vue"
 import DocTypeSearch from "../views/DocTypeSearch.vue"
 import DocItemSearch from "../views/DocItemSearch.vue"
+import AddClassroom from '../views/AddClassroom.vue'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -57,6 +58,11 @@ const router = createRouter({
       path: '/form.actions',
       name: 'FormAction',
       component: FormAction
+    },
+    {
+      path: '/Add.Classroom',
+      name: 'AddClassroom',
+      component: AddClassroom
     }
   ]
 })

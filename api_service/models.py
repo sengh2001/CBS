@@ -13,7 +13,7 @@ from peewee import *
 
 from playhouse.postgres_ext import PostgresqlExtDatabase, JSONField
 
-db = PostgresqlExtDatabase('docflo', user='postgres') # Deferred initialization
+db = PostgresqlExtDatabase('cbs', user='arsh') # Deferred initialization
 
     
 class MediumTextField(TextField):
@@ -28,9 +28,7 @@ def create_schema():
     logging.info("Creating DB tables")
     with db:
         db.create_tables(
-            [SystemSetting, User, DocAction, AuditLog,
-            DocItem, DocField, DocFieldValue, DocType,
-            DocItemFile, DocItemNote]
+            [SystemSetting, User, AuditLog, Classroom , Booking]
         )
         logging.info("DB tables created.")
 
@@ -93,66 +91,20 @@ class User(BaseModel):
         return "{0} {1} ({2})".format(self.first_name, 
             self.last_name, self.email)
 
-
-class DocType(BaseModel):
-    name = CharField(max_length=60, index=True)
-    group = CharField(max_length=60, index=True)
+class Classroom(BaseModel):
+    class_name = CharField(max_length=50, unique=True)
+    capacity = IntegerField()
+    Location = CharField(max_length=50)
     description = TextField(null=True)
+    is_booked = BooleanField(constraints=[SQL('DEFAULT FALSE')])
+    is_available = BooleanField(constraints=[SQL('DEFAULT TRUE')])
+
+class Booking(BaseModel):
+    classroom = ForeignKeyField(Classroom, backref='bookings')
+    user = ForeignKeyField(User, backref='bookings')
+    start_time = TimeField()
+    end_time = TimeField()
+    date = DateField()
 
     class Meta:
-        indexes = (
-            (("name", "group"), True),
-        )
-
-
-class DocField(BaseModel):
-    doc_type = ForeignKeyField(DocType, backref="doc_fields")
-    name = CharField(max_length=60, index=True)
-    # float, integer, string, date, boolean
-    field_type = CharField(max_length=60)
-    doc_group_type = CharField(max_length=60, null=True) #optional field for refernce 
-    optional = BooleanField(constraints=[SQL('DEFAULT FALSE')])
-    finder = BooleanField(constraints=[SQL('DEFAULT FALSE')])
-    display_seq = SmallIntegerField(default=0)
-    label = CharField(max_length=100)
-
-    class Meta:
-        indexes = ()
-
-
-class DocItem(BaseModel):
-    doc_type = ForeignKeyField(DocType, backref="doc_items")
-    status = CharField(max_length=40)
-
-
-class DocItemFile(BaseModel):
-    doc_item = ForeignKeyField(DocItem, backref="doc_files")
-    # UUID value
-    doc_file = TextField()
-
-
-class DocItemNote(BaseModel):
-    doc_item = ForeignKeyField(DocItem, backref="doc_notes")
-    author = ForeignKeyField(User, backref="user_notes")
-    note = TextField()
-
-
-class DocFieldValue(BaseModel):
-    doc_field = ForeignKeyField(DocField, backref="field_values")
-    doc_item = ForeignKeyField(DocItem, backref="field_values")
-    field_val = CharField(max_length=150, null=True)
-
-
-class DocAction(BaseModel):
-    doc_type = ForeignKeyField(DocType, backref="doc_actions")
-    user_role = CharField(max_length=10)
-    status_now = CharField(max_length=40)
-    action = CharField(max_length=60)
-    status_after = CharField(max_length=40, null=True)
-    allowed_ou = CharField(max_length=60)
-
-    class Meta:
-        indexes = (
-            # Unique index
-            (("doc_type", "user_role", "status_now", "action"), True),
-        )
+        constraints = [Check('start_time <> end_time')]

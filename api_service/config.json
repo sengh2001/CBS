@@ -1,9 +1,9 @@
 {
     "host": "localhost",
     "port": 5500,
-    "db_name": "docflo",
+    "db_name": "cbs",
     "db_args": {
-        "dbname": "docflo",
+        "dbname": "cbs",
         "user": "arsh",
         "password": "abc123",
         "host": "localhost",
@@ -17,5 +17,5 @@
         "host": "us2.smtp.mailhostbox.com",
         "port": 587
     },
-    "upload_folder": "ebs_uploads"
+    "upload_folder": "cbs_uploads"
 }

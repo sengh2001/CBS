@@ -562,3 +562,34 @@ def get_docitems_by_user(user_email):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+#----------------------------------------------------CBS-------------------------------------------------------#
+
+
+def add_classroom():
+    try:
+        # Extract data from the request
+        data = request.json
+        class_name = data.get('class_name')
+        capacity = data.get('capacity')
+        Location = data.get('Location')
+        description = data.get('description')
+        is_booked = data.get('is_booked', False)
+        is_available = data.get('is_available', True)
+        
+        # Validate input data
+        if not class_name or not capacity:
+            return jsonify({"error": "class_name and capacity are required fields."}), 400
+        
+        # Create a new Classroom instance and save it to the database
+        classroom = Classroom.create(
+            class_name=class_name,
+            capacity=capacity,
+            Location=Location,
+            description=description,
+            is_booked=is_booked,
+            is_available=is_available
+        )
+        
+        return ok_json({"classroom_id": classroom.id})
+    except Exception as e:
+        return error_json({"error": str(e)})

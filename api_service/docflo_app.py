@@ -65,9 +65,7 @@ def _setup_routes():
 
     '''---------------------New Routes here---------------------------------- '''
 
-    V.vbp.add_url_rule('/get_group_type',view_func =V.get_group_type, methods=['GET'])
-    V.vbp.add_url_rule('/ebs/get_doc_group_types/<string:group>',view_func =V.get_doctypes_by_group, methods=['GET'])
-    V.vbp.add_url_rule('/ebs/docitems_by_user/<string:user_email>',view_func =V.get_docitems_by_user, methods=['GET'])
+    V.vbp.add_url_rule('/add_classroom',view_func=V.add_classroom ,  methods=['POST'])
     
 def create_app(cfg_file_path, is_testing=False):
     myapp = Flask(__name__, static_folder="./app", static_url_path="/docflo/")
