@@ -1,0 +1,25 @@
+{
+    "menus": [{
+            "label": "Admin",
+            "items": [{
+                    "label": "Find Users",
+                    "href": "#/user.find",
+                    "roles": "SUP"
+                },
+                {
+                    "label": "New User",
+                    "href": "#/user",
+                    "roles": "SUP"
+                },
+                {
+                    "label": "Add Classroom",
+                    "href": "#/Add.Classroom",
+                    "roles": "SUP"
+                }
+            ]
+        }
+    ],
+    "links": [ 
+        
+    ]
+}

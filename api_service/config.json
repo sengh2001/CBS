@@ -1,0 +1,21 @@
+{
+    "host": "localhost",
+    "port": 5500,
+    "db_name": "cbs",
+    "db_args": {
+        "dbname": "cbs",
+        "user": "arsh",
+        "password": "abc123",
+        "host": "localhost",
+        "port": 5432
+    },
+    "demo_data": false,
+    "email": {
+        "dryrun": true,
+        "user": "noreply@gtungi.in",
+        "password": "****",
+        "host": "us2.smtp.mailhostbox.com",
+        "port": 587
+    },
+    "upload_folder": "cbs_uploads"
+}
